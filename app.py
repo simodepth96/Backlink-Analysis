@@ -8,7 +8,6 @@ import plotly.express as px
 from io import BytesIO
 
 st.set_page_config(page_title="Backlink Semantic Similarity", layout="wide")
-
 st.title("🔗 Semantic Similarity of Backlink URLs")
 
 uploaded_file = st.file_uploader("📥 Upload Excel file (must contain 'Referring page URL' and 'Target URL')", type=["xlsx"])
@@ -23,7 +22,7 @@ model_choice = st.selectbox(
     ]
 )
 
-# Ensure we only reprocess if a file is uploaded
+# Only run if both file and model are selected
 if uploaded_file and model_choice:
     if 'processed_df' not in st.session_state:
         df = pd.read_excel(uploaded_file)
@@ -60,15 +59,22 @@ if uploaded_file and model_choice:
             return 1 - cosine(ref_vec, tgt_vec)
 
         with st.spinner("⚙️ Calculating semantic similarities..."):
-            df['Cosine Similarity'] = df.apply(
-                lambda row: compute_token_based_similarity(row['Referring page URL'], row['Target URL']), axis=1
-            )
-            df['Cosine Similarity'] = df['Cosine Similarity'].astype(float).round(2)
+            cosine_similarities = []
+            progress_bar = st.progress(0, text="Processing rows...")
+
+            for i, row in df.iterrows():
+                sim = compute_token_based_similarity(row['Referring page URL'], row['Target URL'])
+                cosine_similarities.append(sim)
+                progress = (i + 1) / len(df)
+                progress_bar.progress(progress, text=f"Progress: {int(progress * 100)}%")
+
+            progress_bar.empty()
+            df['Cosine Similarity'] = np.round(cosine_similarities, 2)
 
             if 'Domain rating' in df.columns:
                 df['Domain rating'] = df['Domain rating'].astype(int).round(1)
 
-            # Save to session to avoid reprocessing on download
+            # Save to session state to avoid recomputing
             st.session_state.processed_df = df.copy()
 
             buffer = BytesIO()
@@ -76,10 +82,9 @@ if uploaded_file and model_choice:
             buffer.seek(0)
             st.session_state.excel_buffer = buffer
 
-    # Retrieve processed dataframe from session state
+    # Retrieve processed data from session
     df = st.session_state.processed_df
 
-    # Scatter plot
     if 'Domain rating' in df.columns:
         fig = px.scatter(
             df, x='Cosine Similarity', y='Domain rating',
@@ -87,7 +92,7 @@ if uploaded_file and model_choice:
         )
         st.plotly_chart(fig, use_container_width=True)
 
-    # Bar chart - Top 10 referring pages
+    # Top 10 referring pages
     df_agg = df.groupby('Referring page URL')['Cosine Similarity'].mean().reset_index()
     top_10 = df_agg.sort_values(by='Cosine Similarity', ascending=False).head(10)
     fig_bar = px.bar(
@@ -96,11 +101,11 @@ if uploaded_file and model_choice:
     )
     st.plotly_chart(fig_bar, use_container_width=True)
 
-    # Display full-size DataFrame
+    # Full Data Display
     st.markdown("### 🔍 Full Data")
     st.dataframe(df, use_container_width=True, height=1000)
 
-    # Download button
+    # Download Button (doesn't re-run)
     st.download_button(
         label="📥 Download results as Excel",
         data=st.session_state.excel_buffer,
