@@ -5,6 +5,7 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 from scipy.spatial.distance import cosine
 import plotly.express as px
+from io import BytesIO
 
 # Title
 st.title("Semantic Similarity of Backlink URLs")
@@ -16,6 +17,7 @@ uploaded_file = st.file_uploader("Upload Excel file with Referring page URL and 
 model_choice = st.selectbox(
     "Choose a SentenceTransformer model:",
     [
+        'all-MiniLM-L6-v2',
         'paraphrase-mpnet-base-v2',
         'all-mpnet-base-v2',
         'distiluse-base-multilingual-cased-v2'
@@ -89,4 +91,16 @@ if uploaded_file and model_choice:
 
     # Show data and offer download
     st.dataframe(df)
-    st.download_button("Download results as Excel", df.to_excel(index=False), file_name="semantic_url_similarity.xlsx")
+    # Save to in-memory buffer
+buffer = BytesIO()
+df.to_excel(buffer, index=False, engine='openpyxl')
+buffer.seek(0)  # Rewind to start
+
+# Download button
+st.download_button(
+    label="Download results as Excel",
+    data=buffer,
+    file_name="semantic_url_similarity.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
+
