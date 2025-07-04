@@ -120,15 +120,29 @@ if uploaded_file and model_choice:
 
     # Bar chart - Top 10 referring pages
     df_agg = df.groupby('Referring page URL')['Cosine Similarity'].mean().reset_index()
-    top_10 = df_agg.sort_values(by='Cosine Similarity', ascending=False).head(10)
-    fig_bar = px.bar(
-        top_10,
-        x='Cosine Similarity',
-        y='Referring page URL',
-        orientation='h',
-        title='🏆 Top 10 Backlinks by Cosine Similarity'
-    )
-    st.plotly_chart(fig_bar, use_container_width=True)
+    # Bar chart - Top 10 referring pages (show Target URL on hover)
+top_10_with_target = (
+    df[['Referring page URL', 'Target URL', 'Cosine Similarity']]
+    .sort_values(by='Cosine Similarity', ascending=False)
+    .dropna()
+    .head(10)
+)
+
+fig_bar = px.bar(
+    top_10_with_target,
+    x='Cosine Similarity',
+    y='Referring page URL',
+    orientation='h',
+    title='🏆 Top 10 Backlinks by Cosine Similarity',
+    custom_data=['Target URL']  # This enables us to show extra info in the tooltip
+)
+
+fig_bar.update_traces(
+    hovertemplate="<b>%{y}</b><br>Similarity: %{x}<br>Target: %{customdata[0]}"
+)
+
+st.plotly_chart(fig_bar, use_container_width=True)
+
 
     # Display full DataFrame
     st.markdown("### 🔍 Full Processed Data")
