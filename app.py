@@ -12,7 +12,17 @@ st.title("Semantic Similarity of Backlink URLs")
 # File uploader
 uploaded_file = st.file_uploader("Upload Excel file with Referring page URL and Target URL", type=["xlsx"])
 
-if uploaded_file:
+# Model selection
+model_choice = st.selectbox(
+    "Choose a SentenceTransformer model:",
+    [
+        'paraphrase-mpnet-base-v2',
+        'all-mpnet-base-v2',
+        'distiluse-base-multilingual-cased-v2'
+    ]
+)
+
+if uploaded_file and model_choice:
     df = pd.read_excel(uploaded_file)
 
     # Validate columns
@@ -23,8 +33,8 @@ if uploaded_file:
             st.stop()
 
     # Initialize model
-    with st.spinner("Loading SentenceTransformer model..."):
-        model = SentenceTransformer('all-MiniLM-L6-v2')
+    with st.spinner(f"Loading SentenceTransformer model: {model_choice}..."):
+        model = SentenceTransformer(model_choice)
 
     # Tokenize URL function
     def tokenize_url(url):
