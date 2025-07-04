@@ -7,15 +7,14 @@ from scipy.spatial.distance import cosine
 import plotly.express as px
 from io import BytesIO
 
-# Title
-st.title("Semantic Similarity of Backlink URLs")
+st.set_page_config(page_title="Backlink Semantic Similarity", layout="wide")
 
-# File uploader
-uploaded_file = st.file_uploader("Upload Excel file with Referring page URL and Target URL", type=["xlsx"])
+st.title("🔗 Semantic Similarity of Backlink URLs")
 
-# Model selection
+uploaded_file = st.file_uploader("📥 Upload Excel file (must contain 'Referring page URL' and 'Target URL')", type=["xlsx"])
+
 model_choice = st.selectbox(
-    "Choose a SentenceTransformer model:",
+    "🤖 Choose a SentenceTransformer model:",
     [
         'all-MiniLM-L6-v2',
         'paraphrase-mpnet-base-v2',
@@ -24,82 +23,87 @@ model_choice = st.selectbox(
     ]
 )
 
+# Ensure we only reprocess if a file is uploaded
 if uploaded_file and model_choice:
-    df = pd.read_excel(uploaded_file)
+    if 'processed_df' not in st.session_state:
+        df = pd.read_excel(uploaded_file)
 
-    # Validate columns
-    required_columns = ['Referring page URL', 'Target URL']
-    for col in required_columns:
-        if col not in df.columns:
-            st.error(f"Missing required column: {col}")
-            st.stop()
+        required_columns = ['Referring page URL', 'Target URL']
+        for col in required_columns:
+            if col not in df.columns:
+                st.error(f"❌ Missing required column: {col}")
+                st.stop()
 
-    # Initialize model
-    with st.spinner(f"Loading SentenceTransformer model: {model_choice}..."):
-        model = SentenceTransformer(model_choice)
+        with st.spinner(f"🔄 Loading model: {model_choice}"):
+            model = SentenceTransformer(model_choice)
 
-    # Tokenize URL function
-    def tokenize_url(url):
-        if pd.isna(url) or not isinstance(url, str):
-            return []
-        url = re.sub(r"https?://", "", url)
-        tokens = re.split(r"[\/\.\-\?\=\_\&]+", url)
-        return [t.lower() for t in tokens if t]
+        def tokenize_url(url):
+            if pd.isna(url) or not isinstance(url, str):
+                return []
+            url = re.sub(r"https?://", "", url)
+            tokens = re.split(r"[\/\.\-\?\=\_\&]+", url)
+            return [t.lower() for t in tokens if t]
 
-    # Get average embedding
-    def get_average_embedding(tokens):
-        if not tokens:
-            return np.zeros(model.get_sentence_embedding_dimension())
-        embeddings = model.encode(tokens)
-        return np.mean(embeddings, axis=0)
+        def get_average_embedding(tokens):
+            if not tokens:
+                return np.zeros(model.get_sentence_embedding_dimension())
+            embeddings = model.encode(tokens)
+            return np.mean(embeddings, axis=0)
 
-    # Compute similarity
-    def compute_token_based_similarity(ref_url, tgt_url):
-        ref_tokens = tokenize_url(ref_url)
-        tgt_tokens = tokenize_url(tgt_url)
-        ref_vec = get_average_embedding(ref_tokens)
-        tgt_vec = get_average_embedding(tgt_tokens)
-        if np.all(ref_vec == 0) or np.all(tgt_vec == 0):
-            return np.nan
-        return 1 - cosine(ref_vec, tgt_vec)
+        def compute_token_based_similarity(ref_url, tgt_url):
+            ref_tokens = tokenize_url(ref_url)
+            tgt_tokens = tokenize_url(tgt_url)
+            ref_vec = get_average_embedding(ref_tokens)
+            tgt_vec = get_average_embedding(tgt_tokens)
+            if np.all(ref_vec == 0) or np.all(tgt_vec == 0):
+                return np.nan
+            return 1 - cosine(ref_vec, tgt_vec)
 
-    # Run similarity calculation
-    with st.spinner("Calculating cosine similarities..."):
-        df['Cosine Similarity'] = df.apply(
-            lambda row: compute_token_based_similarity(row['Referring page URL'], row['Target URL']), axis=1
-        )
-        df['Cosine Similarity'] = df['Cosine Similarity'].astype(float).round(2)
+        with st.spinner("⚙️ Calculating semantic similarities..."):
+            df['Cosine Similarity'] = df.apply(
+                lambda row: compute_token_based_similarity(row['Referring page URL'], row['Target URL']), axis=1
+            )
+            df['Cosine Similarity'] = df['Cosine Similarity'].astype(float).round(2)
 
-    # Optional domain rating plot
+            if 'Domain rating' in df.columns:
+                df['Domain rating'] = df['Domain rating'].astype(int).round(1)
+
+            # Save to session to avoid reprocessing on download
+            st.session_state.processed_df = df.copy()
+
+            buffer = BytesIO()
+            df.to_excel(buffer, index=False, engine='openpyxl')
+            buffer.seek(0)
+            st.session_state.excel_buffer = buffer
+
+    # Retrieve processed dataframe from session state
+    df = st.session_state.processed_df
+
+    # Scatter plot
     if 'Domain rating' in df.columns:
-        df['Domain rating'] = df['Domain rating'].astype(int).round(1)
-        fig = px.scatter(df, x='Cosine Similarity', y='Domain rating', title='Domain Rating vs Cosine Similarity')
-        st.plotly_chart(fig)
+        fig = px.scatter(
+            df, x='Cosine Similarity', y='Domain rating',
+            title='📊 Domain Rating vs. Cosine Similarity'
+        )
+        st.plotly_chart(fig, use_container_width=True)
 
-    # Top 10 backlinks by similarity
+    # Bar chart - Top 10 referring pages
     df_agg = df.groupby('Referring page URL')['Cosine Similarity'].mean().reset_index()
     top_10 = df_agg.sort_values(by='Cosine Similarity', ascending=False).head(10)
     fig_bar = px.bar(
-        top_10,
-        x='Cosine Similarity',
-        y='Referring page URL',
-        title='Top 10 Backlinks by Cosine Similarity',
-        orientation='h'
+        top_10, x='Cosine Similarity', y='Referring page URL',
+        title='🏆 Top 10 Backlinks by Cosine Similarity', orientation='h'
     )
-    st.plotly_chart(fig_bar)
+    st.plotly_chart(fig_bar, use_container_width=True)
 
-    # Show and download the data
-    st.dataframe(df)
-
-    # Save to in-memory buffer
-    buffer = BytesIO()
-    df.to_excel(buffer, index=False, engine='openpyxl')
-    buffer.seek(0)
+    # Display full-size DataFrame
+    st.markdown("### 🔍 Full Data")
+    st.dataframe(df, use_container_width=True, height=1000)
 
     # Download button
     st.download_button(
-        label="Download results as Excel",
-        data=buffer,
+        label="📥 Download results as Excel",
+        data=st.session_state.excel_buffer,
         file_name="semantic_url_similarity.xlsx",
         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
     )
