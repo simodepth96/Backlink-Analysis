@@ -29,7 +29,6 @@ model_choice = st.selectbox(
     ]
 )
 
-# Only run when file and model are selected
 if uploaded_file and model_choice:
     if 'processed_df' not in st.session_state:
         df = pd.read_excel(uploaded_file)
@@ -40,7 +39,7 @@ if uploaded_file and model_choice:
                 st.error(f"❌ Missing required column: {col}")
                 st.stop()
 
-        # Load selected model
+        # Load SentenceTransformer model
         with st.spinner(f"🔄 Loading model: {model_choice}"):
             model = SentenceTransformer(model_choice)
 
@@ -69,7 +68,7 @@ if uploaded_file and model_choice:
                 return np.nan
             return 1 - cosine(ref_vec, tgt_vec)
 
-        # Progress bar and similarity calculation
+        # Run similarity calculation
         with st.spinner("⚙️ Calculating semantic similarities..."):
             cosine_similarities = []
             progress_bar = st.progress(0, text="Processing rows...")
@@ -83,34 +82,33 @@ if uploaded_file and model_choice:
             progress_bar.empty()
             df['Cosine Similarity'] = np.round(cosine_similarities, 4)
 
-        # Convert to 0–100 integer scale
+        # ✅ YOUR BLOCK — added here
         df['Cosine Similarity'] = (df['Cosine Similarity'] * 100).round().astype(int)
 
-        # Format Domain Rating if present
         if 'Domain rating' in df.columns:
             df['Domain rating'] = df['Domain rating'].astype(int)
 
-        # Save to session
+        # Save to session to avoid reprocessing on download
         st.session_state.processed_df = df.copy()
 
-        # Save Excel to memory
+        # Display summary statistics
+        st.markdown("### 📊 Dataset Statistics")
+        st.markdown(f"- **Total rows processed:** {len(df)}")
+        st.markdown(f"- **Valid similarities:** {df['Cosine Similarity'].notna().sum()}")
+        st.markdown(f"- **Average similarity:** {df['Cosine Similarity'].mean():.1f}")
+        st.markdown(f"- **Min similarity:** {df['Cosine Similarity'].min()}")
+        st.markdown(f"- **Max similarity:** {df['Cosine Similarity'].max()}")
+
+        # Save Excel to memory buffer
         buffer = BytesIO()
         df.to_excel(buffer, index=False, engine='openpyxl')
         buffer.seek(0)
         st.session_state.excel_buffer = buffer
 
-    # Get processed DataFrame
+    # Load from session
     df = st.session_state.processed_df
 
-    # Display stats
-    st.markdown("### 📊 Dataset Statistics")
-    st.markdown(f"- **Total rows processed:** {len(df)}")
-    st.markdown(f"- **Valid similarities:** {df['Cosine Similarity'].notna().sum()}")
-    st.markdown(f"- **Average similarity:** {df['Cosine Similarity'].mean():.1f}")
-    st.markdown(f"- **Min similarity:** {df['Cosine Similarity'].min()}")
-    st.markdown(f"- **Max similarity:** {df['Cosine Similarity'].max()}")
-
-    # Scatter plot if Domain rating exists
+    # Scatter plot (if domain rating exists)
     if 'Domain rating' in df.columns:
         fig = px.scatter(
             df,
@@ -120,10 +118,9 @@ if uploaded_file and model_choice:
         )
         st.plotly_chart(fig, use_container_width=True)
 
-    # Bar chart - Top 10 backlinks by similarity
+    # Bar chart - Top 10 referring pages
     df_agg = df.groupby('Referring page URL')['Cosine Similarity'].mean().reset_index()
     top_10 = df_agg.sort_values(by='Cosine Similarity', ascending=False).head(10)
-
     fig_bar = px.bar(
         top_10,
         x='Cosine Similarity',
@@ -133,11 +130,11 @@ if uploaded_file and model_choice:
     )
     st.plotly_chart(fig_bar, use_container_width=True)
 
-    # Full Data Table
+    # Display full DataFrame
     st.markdown("### 🔍 Full Processed Data")
     st.dataframe(df, use_container_width=True, height=1000)
 
-    # Download Button
+    # Download button
     st.download_button(
         label="📥 Download results as Excel",
         data=st.session_state.excel_buffer,
