@@ -70,14 +70,13 @@ if uploaded_file and model_choice:
         )
         df['Cosine Similarity'] = df['Cosine Similarity'].astype(float).round(2)
 
+    # Optional domain rating plot
     if 'Domain rating' in df.columns:
         df['Domain rating'] = df['Domain rating'].astype(int).round(1)
-
-        # Scatter plot
         fig = px.scatter(df, x='Cosine Similarity', y='Domain rating', title='Domain Rating vs Cosine Similarity')
         st.plotly_chart(fig)
 
-    # Bar chart - top 10 referring pages
+    # Top 10 backlinks by similarity
     df_agg = df.groupby('Referring page URL')['Cosine Similarity'].mean().reset_index()
     top_10 = df_agg.sort_values(by='Cosine Similarity', ascending=False).head(10)
     fig_bar = px.bar(
@@ -89,18 +88,18 @@ if uploaded_file and model_choice:
     )
     st.plotly_chart(fig_bar)
 
-    # Show data and offer download
+    # Show and download the data
     st.dataframe(df)
+
     # Save to in-memory buffer
-buffer = BytesIO()
-df.to_excel(buffer, index=False, engine='openpyxl')
-buffer.seek(0)  # Rewind to start
+    buffer = BytesIO()
+    df.to_excel(buffer, index=False, engine='openpyxl')
+    buffer.seek(0)
 
-# Download button
-st.download_button(
-    label="Download results as Excel",
-    data=buffer,
-    file_name="semantic_url_similarity.xlsx",
-    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-)
-
+    # Download button
+    st.download_button(
+        label="Download results as Excel",
+        data=buffer,
+        file_name="semantic_url_similarity.xlsx",
+        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
