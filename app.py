@@ -82,7 +82,7 @@ if uploaded_file and model_choice:
             progress_bar.empty()
             df['Cosine Similarity'] = np.round(cosine_similarities, 4)
 
-        # ✅ YOUR BLOCK — added here
+        # Convert to 0–100 scale and round to integer
         df['Cosine Similarity'] = (df['Cosine Similarity'] * 100).round().astype(int)
 
         if 'Domain rating' in df.columns:
@@ -118,31 +118,28 @@ if uploaded_file and model_choice:
         )
         st.plotly_chart(fig, use_container_width=True)
 
-    # Bar chart - Top 10 referring pages
-    df_agg = df.groupby('Referring page URL')['Cosine Similarity'].mean().reset_index()
-    # Bar chart - Top 10 referring pages (show Target URL on hover)
-top_10_with_target = (
-    df[['Referring page URL', 'Target URL', 'Cosine Similarity']]
-    .sort_values(by='Cosine Similarity', ascending=False)
-    .dropna()
-    .head(10)
-)
+    # Bar chart - Top 10 referring pages (hover shows target URL)
+    top_10_with_target = (
+        df[['Referring page URL', 'Target URL', 'Cosine Similarity']]
+        .sort_values(by='Cosine Similarity', ascending=False)
+        .dropna()
+        .head(10)
+    )
 
-fig_bar = px.bar(
-    top_10_with_target,
-    x='Cosine Similarity',
-    y='Referring page URL',
-    orientation='h',
-    title='🏆 Top 10 Backlinks by Cosine Similarity',
-    custom_data=['Target URL']  # This enables us to show extra info in the tooltip
-)
+    fig_bar = px.bar(
+        top_10_with_target,
+        x='Cosine Similarity',
+        y='Referring page URL',
+        orientation='h',
+        title='🏆 Top 10 Backlinks by Cosine Similarity',
+        custom_data=['Target URL']
+    )
 
-fig_bar.update_traces(
-    hovertemplate="<b>%{y}</b><br>Similarity: %{x}<br>Target: %{customdata[0]}"
-)
+    fig_bar.update_traces(
+        hovertemplate="<b>%{y}</b><br>Similarity: %{x}<br>Target: %{customdata[0]}"
+    )
 
-st.plotly_chart(fig_bar, use_container_width=True)
-
+    st.plotly_chart(fig_bar, use_container_width=True)
 
     # Display full DataFrame
     st.markdown("### 🔍 Full Processed Data")
