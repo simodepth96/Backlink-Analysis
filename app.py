@@ -10,7 +10,7 @@ from io import BytesIO
 # Configure Streamlit page
 st.set_page_config(page_title="Backlink Semantic Similarity", layout="wide")
 
-st.title("🔗 Semantic Similarity of Backlink URLs")
+st.title("Audit Semantic Similarity of Backlink URLs")
 
 # Upload Excel file
 uploaded_file = st.file_uploader(
@@ -20,7 +20,7 @@ uploaded_file = st.file_uploader(
 
 # Model selection
 model_choice = st.selectbox(
-    "🤖 Choose a SentenceTransformer model:",
+    "Choose a SentenceTransformer model:",
     [
         'all-MiniLM-L6-v2',
         'paraphrase-mpnet-base-v2',
@@ -92,7 +92,7 @@ if uploaded_file and model_choice:
         st.session_state.processed_df = df.copy()
 
         # Display summary statistics
-        st.markdown("### 📊 Dataset Statistics")
+        st.markdown("### 📊 Useful Stats")
         st.markdown(f"- **Total rows processed:** {len(df)}")
         st.markdown(f"- **Valid similarities:** {df['Cosine Similarity'].notna().sum()}")
         st.markdown(f"- **Average similarity:** {df['Cosine Similarity'].mean():.1f}")
@@ -142,7 +142,7 @@ if uploaded_file and model_choice:
     st.plotly_chart(fig_bar, use_container_width=True)
 
     # Display full DataFrame
-    st.markdown("### 🔍 Full Processed Data")
+    st.markdown("### Backlink URLs with DR & Cosine Similarity Scores")
     st.dataframe(df, use_container_width=True, height=1000)
 
     # Download button
