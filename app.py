@@ -134,7 +134,7 @@ if uploaded_file and model_choice:
         width=1024,
         height=500,
         xaxis_title='Cosine Similarity (Bins)',
-        yaxis_title='Number of Backlinks',
+        yaxis_title='Count of Backlinks',
         bargap=0.2
     )
     st.plotly_chart(similarity_bar, use_container_width=True)
