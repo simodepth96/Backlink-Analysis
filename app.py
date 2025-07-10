@@ -87,15 +87,6 @@ if uploaded_file and model_choice:
 
     df = st.session_state.processed_df
 
-    if 'Domain rating' in df.columns:
-        fig = px.scatter(
-            df,
-            x='Cosine Similarity',
-            y='Domain rating',
-            title='📊 Domain Rating vs. Cosine Similarity'
-        )
-        st.plotly_chart(fig, use_container_width=True)
-
     top_10_with_target = (
         df[['Referring page URL', 'Target URL', 'Cosine Similarity']]
         .sort_values(by='Cosine Similarity', ascending=False)
@@ -117,7 +108,6 @@ if uploaded_file and model_choice:
     )
     st.plotly_chart(fig_bar, use_container_width=True)
 
-    # --- Cosine Similarity Histogram ---
     df['Cosine Similarity Range'] = pd.cut(
         df['Cosine Similarity'],
         bins=[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
