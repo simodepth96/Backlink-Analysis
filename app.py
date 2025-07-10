@@ -126,7 +126,7 @@ if uploaded_file and model_choice:
         similarity_distribution,
         x='Cosine Similarity Range',
         y='Count',
-        title='🔍 Distribution of Backlinks by Cosine Similarity Range',
+        title='🔍 Distribution of Backlinks by Cosine Similarity',
         labels={'Count': 'Number of Backlinks', 'Cosine Similarity Range': 'Similarity Range'}
     )
 
