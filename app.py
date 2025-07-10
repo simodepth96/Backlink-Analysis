@@ -127,7 +127,7 @@ if uploaded_file and model_choice:
         x='Cosine Similarity Range',
         y='Count',
         title='🔍 Distribution of Backlinks by Similarity to Target URL',
-        labels={'Count': 'Number of Backlinks', 'Cosine Similarity Range': 'Similarity Range'}
+        labels={'Count': 'Count of Backlinks', 'Cosine Similarity Range': 'Similarity Range'}
     )
 
     similarity_bar.update_layout(
