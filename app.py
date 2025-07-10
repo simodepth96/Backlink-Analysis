@@ -133,7 +133,7 @@ if uploaded_file and model_choice:
     similarity_bar.update_layout(
         width=1024,
         height=500,
-        xaxis_title='Cosine Similarity (%)',
+        xaxis_title='Cosine Similarity (Bins)',
         yaxis_title='Number of Backlinks',
         bargap=0.2
     )
