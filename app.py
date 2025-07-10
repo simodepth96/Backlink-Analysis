@@ -4,13 +4,12 @@ import re
 import numpy as np
 from sentence_transformers import SentenceTransformer
 from scipy.spatial.distance import cosine
-import plotly.express as px
 from io import BytesIO
+import plotly.express as px
 
 # Configure Streamlit page
 st.set_page_config(page_title="Backlink Semantic Similarity", layout="wide")
-
-st.title("Audit Semantic Similarity of Backlink URLs")
+st.title("🔗 Audit Semantic Similarity of Backlink URLs")
 
 # Upload Excel file
 uploaded_file = st.file_uploader(
@@ -39,11 +38,9 @@ if uploaded_file and model_choice:
                 st.error(f"❌ Missing required column: {col}")
                 st.stop()
 
-        # Load SentenceTransformer model
         with st.spinner(f"🔄 Loading model: {model_choice}"):
             model = SentenceTransformer(model_choice)
 
-        # Tokenize URLs
         def tokenize_url(url):
             if pd.isna(url) or not isinstance(url, str):
                 return []
@@ -51,14 +48,12 @@ if uploaded_file and model_choice:
             tokens = re.split(r"[\/\.\-\?\=\_\&]+", url)
             return [t.lower() for t in tokens if t]
 
-        # Get average embedding
         def get_average_embedding(tokens):
             if not tokens:
                 return np.zeros(model.get_sentence_embedding_dimension())
             embeddings = model.encode(tokens)
             return np.mean(embeddings, axis=0)
 
-        # Compute cosine similarity
         def compute_token_based_similarity(ref_url, tgt_url):
             ref_tokens = tokenize_url(ref_url)
             tgt_tokens = tokenize_url(tgt_url)
@@ -68,7 +63,6 @@ if uploaded_file and model_choice:
                 return np.nan
             return 1 - cosine(ref_vec, tgt_vec)
 
-        # Run similarity calculation
         with st.spinner("⚙️ Calculating semantic similarities..."):
             cosine_similarities = []
             progress_bar = st.progress(0, text="Processing rows...")
@@ -80,45 +74,28 @@ if uploaded_file and model_choice:
                 progress_bar.progress(progress, text=f"Progress: {int(progress * 100)}%")
 
             progress_bar.empty()
-            df['Cosine Similarity'] = np.round(cosine_similarities, 4)
-
-        # Convert to 0–100 scale and round to integer
-        df['Cosine Similarity'] = (df['Cosine Similarity'] * 100).round().astype(int)
+            df['Cosine Similarity'] = (np.round(cosine_similarities, 4) * 100).round().astype(int)
 
         if 'Domain rating' in df.columns:
             df['Domain rating'] = df['Domain rating'].astype(int)
 
-        # Save to session to avoid reprocessing on download
         st.session_state.processed_df = df.copy()
-
-        # Display summary statistics
-        st.markdown("### 📊 Useful Stats")
-        st.markdown(f"- **Total rows processed:** {len(df)}")
-        st.markdown(f"- **Valid similarities:** {df['Cosine Similarity'].notna().sum()}")
-        st.markdown(f"- **Average similarity:** {df['Cosine Similarity'].mean():.1f}")
-        st.markdown(f"- **Min similarity:** {df['Cosine Similarity'].min()}")
-        st.markdown(f"- **Max similarity:** {df['Cosine Similarity'].max()}")
-
-        # Save Excel to memory buffer
         buffer = BytesIO()
         df.to_excel(buffer, index=False, engine='openpyxl')
         buffer.seek(0)
         st.session_state.excel_buffer = buffer
 
-    # Load from session
     df = st.session_state.processed_df
 
-    # Scatter plot (if domain rating exists)
     if 'Domain rating' in df.columns:
         fig = px.scatter(
             df,
             x='Cosine Similarity',
             y='Domain rating',
-            title='📊 Domain Rating vs. Cosine Similarity',
+            title='📊 Domain Rating vs. Cosine Similarity'
         )
         st.plotly_chart(fig, use_container_width=True)
 
-    # Bar chart - Top 10 referring pages (hover shows target URL)
     top_10_with_target = (
         df[['Referring page URL', 'Target URL', 'Cosine Similarity']]
         .sort_values(by='Cosine Similarity', ascending=False)
@@ -138,14 +115,43 @@ if uploaded_file and model_choice:
     fig_bar.update_traces(
         hovertemplate="<b>%{y}</b><br>Similarity: %{x}<br>Target: %{customdata[0]}"
     )
-
     st.plotly_chart(fig_bar, use_container_width=True)
 
-    # Display full DataFrame
-    st.markdown("### Backlink URLs with DR & Cosine Similarity Scores")
+    # --- Cosine Similarity Histogram ---
+    df['Cosine Similarity Range'] = pd.cut(
+        df['Cosine Similarity'],
+        bins=[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+        labels=['0-10', '10-20', '20-30', '30-40', '40-50', '50-60', '60-70', '70-80', '80-90', '90-100'],
+        include_lowest=True
+    )
+
+    similarity_distribution = (
+        df.groupby('Cosine Similarity Range')['Referring page URL']
+        .count()
+        .reset_index()
+        .rename(columns={'Referring page URL': 'Count'})
+    )
+
+    similarity_bar = px.bar(
+        similarity_distribution,
+        x='Cosine Similarity Range',
+        y='Count',
+        title='🔍 Distribution of Backlinks by Cosine Similarity Range',
+        labels={'Count': 'Number of Backlinks', 'Cosine Similarity Range': 'Similarity Range'}
+    )
+
+    similarity_bar.update_layout(
+        width=1024,
+        height=500,
+        xaxis_title='Cosine Similarity (%)',
+        yaxis_title='Number of Backlinks',
+        bargap=0.2
+    )
+    st.plotly_chart(similarity_bar, use_container_width=True)
+
+    st.markdown("### 📄 Backlink URLs with DR & Cosine Similarity Scores")
     st.dataframe(df, use_container_width=True, height=1000)
 
-    # Download button
     st.download_button(
         label="📥 Download results as Excel",
         data=st.session_state.excel_buffer,
