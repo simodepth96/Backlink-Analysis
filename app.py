@@ -99,7 +99,7 @@ if uploaded_file and model_choice:
         x='Cosine Similarity',
         y='Referring page URL',
         orientation='h',
-        title='🏆 Top 10 Backlinks by Cosine Similarity',
+        title='🏆 Top 10 Backlinks by Similarity to Target URL',
         custom_data=['Target URL']
     )
 
@@ -126,7 +126,7 @@ if uploaded_file and model_choice:
         similarity_distribution,
         x='Cosine Similarity Range',
         y='Count',
-        title='🔍 Distribution of Backlinks by Cosine Similarity',
+        title='🔍 Distribution of Backlinks by Similarity to Target URL',
         labels={'Count': 'Number of Backlinks', 'Cosine Similarity Range': 'Similarity Range'}
     )
 
