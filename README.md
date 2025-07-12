@@ -25,14 +25,12 @@ Simply upload an Ahrefs backlink export in `.xlsx` format and evaluate your bran
 Cosine similarity is used as a notion of proximity between the vectors to express a score of similarity between the documents, namely the backlink URLs and the related Target URL. 
 
 ### Caveat
-Beware, Cosine similarity only measures the direction of word vectors, not their magnitude (length). Hence, it sacrifices meaning by ignoring true word relationships and order, so just the semantic match. 
-
+Beware, Cosine similarity only compares the angle of word vectors, but doesn't factor in  their magnitude (length). Hence, it sacrifices meaning by ignoring true word relationships and order, so just the semantic match. 
 But Google indexing pipelines go further: RankEmbed also considers the vector length other than the angle of the vectors, which lets it mix in extra signals like PageRank, freshness, or click data.
 
-SEO wise, this means that search results aren’t ranked by meaning alone but are boosted by authority and relevance signals too.
-
-In the context of our SEO analyses, this means that cosine similarity acts as a leading indicator to support the analysis.
-
+**What does it all mean?**
+> SEO Indexation - this means that search results aren’t ranked by meaning alone but are boosted by authority and relevance signals too.
+> SEO audit - this means that cosine similarity acts as a leading indicator to support the analysis.
 It doesn't reflect how Google prepares their cached index to meet the search query vectors; therefore, **avoid acting upon this indicator alone**.
 
 ---
