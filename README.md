@@ -29,8 +29,8 @@ Beware, Cosine similarity only compares the angle of word vectors, but doesn't f
 But Google indexing pipelines go further: RankEmbed also considers the vector length other than the angle of the vectors, which lets it mix in extra signals like PageRank, freshness, or click data.
 
 **What does it all mean?**
-> SEO Indexation - this means that search results aren’t ranked by meaning alone but are boosted by authority and relevance signals too.
-> SEO audit - this means that cosine similarity acts as a leading indicator to support the analysis.
+- SEO Indexation - this means that search results aren’t ranked by meaning alone but are boosted by authority and relevance signals too.
+- SEO audit - this means that cosine similarity acts as a leading indicator to support the analysis.
 It doesn't reflect how Google prepares their cached index to meet the search query vectors; therefore, **avoid acting upon this indicator alone**.
 
 ---
