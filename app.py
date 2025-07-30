@@ -240,7 +240,7 @@ if uploaded_file and model_choice:
             )
             st.plotly_chart(fig_top_cas, use_container_width=True)
 
-    with tab3:
+   with tab3:
         st.markdown("### 🌊 Sankey Diagram - Top 25 Backlinks by CAS")
         
         # Create Sankey diagram using Plotly with enhanced features
@@ -298,13 +298,13 @@ if uploaded_file and model_choice:
                     source=source_indices,
                     target=target_indices,
                     value=values,
-                    color='rgba(135, 206, 250, 0.4)',  # Light blue with transparency
+                    color='rgba(255, 255, 255, 0.4)',  # White with transparency for links
                     hovertemplate='%{customdata}<br>Value: %{value}<extra></extra>',
                     customdata=hover_labels
                 )
             )])
             
-            # Update layout with better styling
+            # Update layout with better styling - white text on black background
             fig_sankey.update_layout(
                 title={
                     'text': "Top 25 Backlinks by Contextual Authority Score",
@@ -312,29 +312,21 @@ if uploaded_file and model_choice:
                     'x': 0.5,
                     'xanchor': 'center'
                 },
-                font=dict(color="white", size=11),
-                paper_bgcolor='rgba(30, 30, 30, 0.8)',  # Dark background for contrast
-                plot_bgcolor='rgba(0, 0, 0, 0)',
+                font=dict(color="white", size=11),  # All text white
+                paper_bgcolor='black',  # Pure black background
+                plot_bgcolor='black',   # Pure black plot area
                 height=650,
                 margin=dict(t=60, b=20, l=20, r=20)
             )
             
+            # Make sure node labels are white
+            fig_sankey.update_traces(
+                node_color=node_colors,
+                node_line_color="white",
+                node_line_width=3
+            )
+            
             st.plotly_chart(fig_sankey, use_container_width=True)
-            
-            # Add some statistics below the diagram
-            st.markdown("### 📊 Sankey Diagram Statistics")
-            col1, col2, col3, col4 = st.columns(4)
-            
-            with col1:
-                st.metric("Unique Sources", len(set(sources)))
-            with col2:
-                st.metric("Unique Targets", len(set(targets)))
-            with col3:
-                avg_cas_top25 = df_top25['Contextual Authority Score'].mean()
-                st.metric("Avg CAS (Top 25)", f"{avg_cas_top25:.0f}")
-            with col4:
-                max_cas_top25 = df_top25['Contextual Authority Score'].max()
-                st.metric("Max CAS (Top 25)", f"{max_cas_top25}")
         
         else:
             st.warning("No data available for Sankey diagram.")
