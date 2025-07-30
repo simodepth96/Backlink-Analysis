@@ -10,7 +10,7 @@ import plotly.graph_objects as go
 
 # Configure Streamlit page
 st.set_page_config(page_title="Backlink Semantic Similarity & Authority Analysis", layout="wide")
-st.title("Backlink Analysis")
+st.title("🔗 Advanced Backlink Analysis: Semantic Similarity & Contextual Authority")
 
 # Upload Excel file
 uploaded_file = st.file_uploader(
@@ -243,61 +243,102 @@ if uploaded_file and model_choice:
     with tab3:
         st.markdown("### 🌊 Sankey Diagram - Top 25 Backlinks by CAS")
         
-        # Create Sankey diagram
+        # Create Sankey diagram using Plotly with enhanced features
         df_top25 = df.sort_values(by='Contextual Authority Score', ascending=False).head(25)
         
         if len(df_top25) > 0:
-            all_nodes = pd.concat([df_top25['Referring page URL'], df_top25['Target URL']]).unique()
-            node_dict = {node: i for i, node in enumerate(all_nodes)}
+            # Prepare data for Sankey
+            sources = df_top25['Referring page URL'].tolist()
+            targets = df_top25['Target URL'].tolist()
             
-            # Create colorful node colors
-            node_colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'] * 10
+            # Create unique nodes list
+            all_nodes = list(set(sources + targets))
             
-            links = []
-            for index, row in df_top25.iterrows():
-                source_index = node_dict[row['Referring page URL']]
-                target_index = node_dict[row['Target URL']]
-                
-                # Use Domain rating if available, otherwise use UR
+            # Create node mapping
+            node_map = {node: idx for idx, node in enumerate(all_nodes)}
+            
+            # Prepare link data
+            source_indices = [node_map[source] for source in sources]
+            target_indices = [node_map[target] for target in targets]
+            
+            # Calculate link values
+            if 'Domain rating' in df.columns:
+                values = (df_top25['Domain rating'] + df_top25['Contextual Authority Score']).tolist()
+            else:
+                values = (df_top25['UR'] + df_top25['Contextual Authority Score']).tolist()
+            
+            # Create color palette for nodes
+            colors = [
+                '#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', 
+                '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9',
+                '#F8C471', '#82E0AA', '#AED6F1', '#E8DAEF', '#FADBD8'
+            ]
+            node_colors = (colors * (len(all_nodes) // len(colors) + 1))[:len(all_nodes)]
+            
+            # Create hover labels for links
+            hover_labels = []
+            for _, row in df_top25.iterrows():
                 if 'Domain rating' in df.columns:
-                    link_value = row['Domain rating'] + row['Contextual Authority Score']
-                    dr_label = f"DR: {row['Domain rating']}"
+                    label = f"DR: {row['Domain rating']}, CAS: {row['Contextual Authority Score']}"
                 else:
-                    link_value = row['UR'] + row['Contextual Authority Score']
-                    dr_label = f"UR: {row['UR']}"
-                
-                links.append({
-                    'source': source_index,
-                    'target': target_index,
-                    'value': link_value,
-                    'label': f"{dr_label}, CAS: {row['Contextual Authority Score']}"
-                })
+                    label = f"UR: {row['UR']}, CAS: {row['Contextual Authority Score']}"
+                hover_labels.append(label)
             
+            # Create the Sankey diagram
             fig_sankey = go.Figure(data=[go.Sankey(
                 node=dict(
-                    pad=15,
-                    thickness=20,
-                    line=dict(color="white", width=2),
-                    label=all_nodes,
-                    color=node_colors[:len(all_nodes)]
+                    pad=20,
+                    thickness=25,
+                    line=dict(color="white", width=3),
+                    label=[node[:50] + "..." if len(node) > 50 else node for node in all_nodes],  # Truncate long URLs
+                    color=node_colors,
+                    hovertemplate='%{label}<extra></extra>'
                 ),
                 link=dict(
-                    source=[link['source'] for link in links],
-                    target=[link['target'] for link in links],
-                    value=[link['value'] for link in links],
-                    label=[link['label'] for link in links],
-                    color='rgba(255, 255, 255, 0.3)'
+                    source=source_indices,
+                    target=target_indices,
+                    value=values,
+                    color='rgba(135, 206, 250, 0.4)',  # Light blue with transparency
+                    hovertemplate='%{customdata}<br>Value: %{value}<extra></extra>',
+                    customdata=hover_labels
                 )
             )])
             
+            # Update layout with better styling
             fig_sankey.update_layout(
-                title_text="Top 25 Backlinks by Contextual Authority Score", 
-                font=dict(color="white", size=12),
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
-                height=600
+                title={
+                    'text': "Top 25 Backlinks by Contextual Authority Score",
+                    'font': {'size': 18, 'color': 'white'},
+                    'x': 0.5,
+                    'xanchor': 'center'
+                },
+                font=dict(color="white", size=11),
+                paper_bgcolor='rgba(30, 30, 30, 0.8)',  # Dark background for contrast
+                plot_bgcolor='rgba(0, 0, 0, 0)',
+                height=650,
+                margin=dict(t=60, b=20, l=20, r=20)
             )
+            
             st.plotly_chart(fig_sankey, use_container_width=True)
+            
+            # Add some statistics below the diagram
+            st.markdown("### 📊 Sankey Diagram Statistics")
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                st.metric("Unique Sources", len(set(sources)))
+            with col2:
+                st.metric("Unique Targets", len(set(targets)))
+            with col3:
+                avg_cas_top25 = df_top25['Contextual Authority Score'].mean()
+                st.metric("Avg CAS (Top 25)", f"{avg_cas_top25:.0f}")
+            with col4:
+                max_cas_top25 = df_top25['Contextual Authority Score'].max()
+                st.metric("Max CAS (Top 25)", f"{max_cas_top25}")
+        
+        else:
+            st.warning("No data available for Sankey diagram.")
+            st.info("Make sure your data has valid Contextual Authority Scores.")
 
     with tab4:
         st.markdown("### 📈 Scatter Plot Analysis")
