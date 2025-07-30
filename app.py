@@ -6,7 +6,6 @@ from sentence_transformers import SentenceTransformer
 from scipy.spatial.distance import cosine
 from io import BytesIO
 import plotly.express as px
-import plotly.graph_objects as go
 
 # Configure Streamlit page
 st.set_page_config(page_title="Backlink Analysis", layout="wide")
@@ -108,10 +107,9 @@ if uploaded_file and model_choice:
 
     df = st.session_state.processed_df
 
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "📊 Overview",
         "🏆 Top Performers",
-        "🌊 Sankey Diagram",
         "📈 Scatter Analysis",
         "📋 Data Table",
         "📥 Download"
@@ -160,20 +158,20 @@ if uploaded_file and model_choice:
             top_cas = df.sort_values(by='Contextual Authority Score', ascending=False).head(10)
             st.plotly_chart(px.bar(top_cas, x='Contextual Authority Score', y='Referring page URL', orientation='h', title='Top 10 by Contextual Authority Score',color_discrete_sequence=['#ff6b6b']), use_container_width=True)
 
-    with tab4:
+    with tab3:
         st.markdown("### 📈 Scatter Plot Analysis")
         y_col = 'Domain rating' if 'Domain rating' in df.columns else 'UR'
         fig_scatter = px.scatter(df, x='Cosine Similarity', y=y_col, hover_data=['Referring page URL'], title=f'{y_col} vs Cosine Similarity')
         st.plotly_chart(fig_scatter, use_container_width=True)
 
-    with tab5:
+    with tab4:
         st.markdown("### 📋 Complete Data Table")
         cols = ['Referring page URL', 'Target URL', 'UR', 'External links', 'Cosine Similarity', 'Contextual Authority Score']
         if 'Domain rating' in df.columns:
             cols.insert(1, 'Domain rating')
         st.dataframe(df[cols].sort_values(by='Contextual Authority Score', ascending=False), use_container_width=True, height=600)
 
-    with tab6:
+    with tab5:
         st.markdown("### 📥 Download Results")
         st.download_button(
             label="📥 Download Enhanced Results as Excel",
