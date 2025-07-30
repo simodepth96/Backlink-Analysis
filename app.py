@@ -106,7 +106,7 @@ if uploaded_file and model_choice:
             df['Domain rating'] = pd.to_numeric(df['Domain rating'], errors='coerce').fillna(0).astype(int)
 
         # Scale to 0-100 and convert to integers for display
-        df['Cosine Similarity (%)'] = (df['Cosine Similarity'] * 100).round().astype(int)
+        df['Cosine Similarity'] = (df['Cosine Similarity'] * 100).round().astype(int)
         df['Contextual Authority Score'] = (df['Contextual Authority Score'] * 100).round().astype(int)
 
         st.session_state.processed_df = df.copy()
@@ -137,14 +137,14 @@ if uploaded_file and model_choice:
         with col1:
             st.metric("Total Backlinks", len(df))
         with col2:
-            avg_similarity = df['Cosine Similarity (%)'].mean()
-            st.metric("Avg. Cosine Similarity", f"{avg_similarity:.1f}%")
+            avg_similarity = df['Cosine Similarity'].mean()
+            st.metric("Avg. Cosine Similarity", f"{avg_similarity:.0f}")
         with col3:
             avg_cas = df['Contextual Authority Score'].mean()
             st.metric("Avg CAS", f"{avg_cas:.0f}")
         with col4:
-            max_similarity = df['Cosine Similarity (%)'].max()
-            st.metric("Max Cosine Similarity", f"{max_similarity}%")
+            max_similarity = df['Cosine Similarity'].max()
+            st.metric("Max Cosine Similarity", f"{max_similarity}")
 
         # Distribution charts side by side
         col1, col2 = st.columns(2)
@@ -152,7 +152,7 @@ if uploaded_file and model_choice:
         with col1:
             # Cosine Similarity Distribution
             df['Similarity Range'] = pd.cut(
-                df['Cosine Similarity (%)'],
+                df['Cosine Similarity'],
                 bins=[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
                 labels=['0-10', '10-20', '20-30', '30-40', '40-50', '50-60', '60-70', '70-80', '80-90', '90-100'],
                 include_lowest=True
@@ -165,7 +165,7 @@ if uploaded_file and model_choice:
                 x='Similarity Range',
                 y='Count',
                 title='🔍 Cosine Similarity Distribution',
-                labels={'Count': 'Count of Backlinks', 'Similarity Range': 'Similarity Range (%)'}
+                labels={'Count': 'Count of Backlinks', 'Similarity Range': 'Similarity Range'}
             )
             st.plotly_chart(fig_sim_dist, use_container_width=True)
 
@@ -198,22 +198,22 @@ if uploaded_file and model_choice:
         with col1:
             # Top 10 by Cosine Similarity
             top_10_similarity = (
-                df[['Referring page URL', 'Target URL', 'Cosine Similarity (%)']]
-                .sort_values(by='Cosine Similarity (%)', ascending=False)
+                df[['Referring page URL', 'Target URL', 'Cosine Similarity']]
+                .sort_values(by='Cosine Similarity', ascending=False)
                 .dropna()
                 .head(10)
             )
             
             fig_top_sim = px.bar(
                 top_10_similarity,
-                x='Cosine Similarity (%)',
+                x='Cosine Similarity',
                 y='Referring page URL',
                 orientation='h',
                 title='🎯 Top 10 by Cosine Similarity',
                 custom_data=['Target URL']
             )
             fig_top_sim.update_traces(
-                hovertemplate="<b>%{y}</b><br>Similarity: %{x}%<br>Target: %{customdata[0]}"
+                hovertemplate="<b>%{y}</b><br>Similarity: %{x}<br>Target: %{customdata[0]}"
             )
             st.plotly_chart(fig_top_sim, use_container_width=True)
 
@@ -250,6 +250,9 @@ if uploaded_file and model_choice:
             all_nodes = pd.concat([df_top25['Referring page URL'], df_top25['Target URL']]).unique()
             node_dict = {node: i for i, node in enumerate(all_nodes)}
             
+            # Create colorful node colors
+            node_colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'] * 10
+            
             links = []
             for index, row in df_top25.iterrows():
                 source_index = node_dict[row['Referring page URL']]
@@ -274,21 +277,24 @@ if uploaded_file and model_choice:
                 node=dict(
                     pad=15,
                     thickness=20,
-                    line=dict(color="white", width=0.5),
+                    line=dict(color="white", width=2),
                     label=all_nodes,
-                    color="white"
+                    color=node_colors[:len(all_nodes)]
                 ),
                 link=dict(
                     source=[link['source'] for link in links],
                     target=[link['target'] for link in links],
                     value=[link['value'] for link in links],
-                    label=[link['label'] for link in links]
+                    label=[link['label'] for link in links],
+                    color='rgba(255, 255, 255, 0.3)'
                 )
             )])
             
             fig_sankey.update_layout(
                 title_text="Top 25 Backlinks by Contextual Authority Score", 
-                font=dict(color="white", size=10),
+                font=dict(color="white", size=12),
+                paper_bgcolor='rgba(0,0,0,0)',
+                plot_bgcolor='rgba(0,0,0,0)',
                 height=600
             )
             st.plotly_chart(fig_sankey, use_container_width=True)
@@ -300,7 +306,7 @@ if uploaded_file and model_choice:
         if 'Domain rating' in df.columns:
             fig_scatter = px.scatter(
                 df, 
-                x='Cosine Similarity (%)', 
+                x='Cosine Similarity', 
                 y='Domain rating',
                 title='Domain Rating vs Cosine Similarity - Correlation Analysis',
                 hover_data=['Referring page URL']
@@ -308,7 +314,7 @@ if uploaded_file and model_choice:
         else:
             fig_scatter = px.scatter(
                 df, 
-                x='Cosine Similarity (%)', 
+                x='Cosine Similarity', 
                 y='UR',
                 title='URL Rating vs Cosine Similarity - Correlation Analysis',
                 hover_data=['Referring page URL']
@@ -322,7 +328,7 @@ if uploaded_file and model_choice:
         
         # Display columns based on what's available
         display_columns = ['Referring page URL', 'Target URL', 'UR', 'External links', 
-                          'Cosine Similarity (%)', 'Contextual Authority Score']
+                          'Cosine Similarity', 'Contextual Authority Score']
         
         if 'Domain rating' in df.columns:
             display_columns.insert(1, 'Domain rating')
@@ -362,7 +368,7 @@ else:
         **This tool analyzes backlink semantic similarity and contextual authority:**
         
         - **Cosine Similarity**: Measures semantic similarity between referring and target URLs
-        - **Contextual Authority Score (CAS)**: Combines URL rating, external links, and semantic similarity
+        - **Contextual Authority Score (CAS)**: a relevance-weighted backlink metric that combines link authority, link dilution, and topical similarity to assess the true SEO value of an external link.
         - **Formula**: CAS = (UR / External Links) × Cosine Similarity
         
         **Required columns in your Excel file:**
