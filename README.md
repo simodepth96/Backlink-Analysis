@@ -2,6 +2,12 @@
 
 This project enhances your backlink profile analysis by combining **Domain Rating (DR)** with **semantic relevance** between backlinks and your website’s target pages.
 
+##The Input File
+A backlink report export from Ahrefs with the following headers
+
+
+<img width="1923" height="25" alt="image" src="https://github.com/user-attachments/assets/511a790d-1290-4520-99f0-9643fd360b58" />
+
 
 ### The Python Script
 
