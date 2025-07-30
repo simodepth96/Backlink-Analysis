@@ -9,8 +9,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Configure Streamlit page
-st.set_page_config(page_title="Backlink Semantic Similarity & Authority Analysis", layout="wide")
-st.title("🔗 Advanced Backlink Analysis: Semantic Similarity & Contextual Authority")
+st.set_page_config(page_title="Backlink Analysis", layout="wide")
+st.title("Backlink Analysis")
 
 # Upload Excel file
 uploaded_file = st.file_uploader(
