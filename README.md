@@ -21,7 +21,7 @@ This project enhances your backlink profile analysis by combining **Domain Ratin
    I strongly recommend using **`all-MiniLM-L6-v2`** — it’s lightweight, robust, and offers the best balance between semantic performance and resource efficiency
 **TL;DR - it's the most accurate and the quickest one to run especially if you have +100K or rows to process**
 
-
+---
 ### The Python Script
 
 The core of this project is a [Python script](https://github.com/simodepth96/Backlink-Analysis/blob/main/raw_code.py) that:
@@ -52,7 +52,9 @@ Adding cosine similarity between backlinks and target URLs gives your analysis a
 > ✅ **Ideal backlinks**: High DR + High Cosine Similarity (close to 1)  
 > ⚠️ **Potential red flags**: Low DR and Low Semantic Similarity  
 
-### Cosine Similarity is the Shadow of what's leveraged by Google Indexer
+---
+### Cosine Similarity is the scrapped copy of Google's RankEmbed
+
 A word or two of caution with the cosine similarity as we know it.
 Cosine similarity only compares the angle of word vectors, but doesn't factor in  their magnitude (length). Hence, it sacrifices meaning by ignoring true word relationships and order, so just the semantic match. In fact, it doesn’t capture word order or true relationships—so phrases like “the dog chased the cat” and “the cat chased the dog” look the same to it.
 Plus, embeddings aren’t perfect—they’re rough approximations, and CS doesn’t catch subtle differences in meaning. Use it to guide analysis, not as the final answer
@@ -64,49 +66,35 @@ But Google indexing pipelines go further: RankEmbed also considers the vector le
 - SEO audit - this means that cosine similarity acts as a leading indicator to support the analysis.
 It doesn't reflect how Google prepares their cached index to meet the search query vectors; therefore, **avoid acting upon this indicator alone**.
 
+---
 ### Enter the Contextual Authority Score metric
 
 I coined the label to describe a compounded metric designed to quantify the impact and topical relevance of an individual backlink.
 It blends page authority, link dilution, and semantic relevance into a single, actionable score —helping SEOs evaluate backlink quality in line with modern ranking signals.
 
- three core elements of link quality—authority, dilution, and semantic context into a single score.
+As per the formula
 
-CAS = (UR / ExLC) × S
-Where:
+> CAS = (UR / ExLC) × S
 
-UR (URL Rating): A numerical representation of the authority of the linking page, often derived from PageRank-like metrics. Unlike domain-level scores (e.g., Domain Rating or Domain Authority), UR focuses on the strength of a specific URL.
+- UR (URL Rating): A numerical representation of the authority of the linking page, often derived from PageRank-like metrics. Unlike domain-level scores (e.g., Domain Rating or Domain Authority), UR focuses on the strength of a specific URL.
 
-ExLC (External Link Count): The total number of outbound links (pointing to external domains) from the linking page. It serves as a dilution factor, reducing the perceived value of a backlink when it's one of many on a page.
+- ExLC (External Link Count): The total number of outbound links (pointing to external domains) from the linking page. It serves as a dilution factor, reducing the perceived value of a backlink when it's one of many on a page.
 
-S (Similarity Score): A semantic similarity score that reflects how contextually or topically relevant the referring page is to the target page. It is typically derived from cosine similarity of textual content, embeddings, or vectorized keyword overlap.
-
-🧠 Conceptual Foundations:
-1. Link Equity Transfer
-The term (UR / ExLC) estimates raw link equity—how much authority is passed to the target page.
-
-Pages with higher UR and fewer outbound links transfer more weight to the destination.
-
-2. Topical Relevance
-The S factor ensures that backlinks are not just powerful, but also topically relevant.
-
-It favors contextual links from semantically aligned content, aligning with Google's shift toward semantic indexing and entity-based retrieval.
+- S (Cosine Similarity): A semantic similarity score that reflects how contextually or topically relevant the referring page is to the target page.
 
 📊 Interpretation of CAS Values:
-High CAS → A link is both authoritative and topically relevant.
-
-Low CAS → A link may come from a weak page, be overly diluted, or be semantically off-topic.
+- High CAS → A link is both authoritative and topically relevant.
+- Low CAS → A link may come from a weak page, be overly diluted, or be semantically off-topic.
 
 🧰 Use Cases:
-Backlink Auditing: Identify which links are most beneficial and which are low-quality or off-topic.
-
-Link Prospecting: Target high CAS opportunities when building new links.
-
-SEO Reporting: Provide a data-driven score that reflects both authority and relevance.
+- Backlink Auditing: Identify which links are most beneficial and which are low-quality or off-topic.
+- Link Prospecting: Target high CAS opportunities when building new links.
+- SEO Reporting: Provide a data-driven score that reflects both authority and relevance.
 
 📌 Important Notes:
-CAS should not be used in isolation. It complements other qualitative and technical backlink evaluation factors (e.g., indexability, placement, anchor text).
+CAS should not be used in isolation. It complements other qualitative and technical backlink evaluation factors (e.g., placement, anchor text).
+As with other metrics, CAS is largely biased by the default infidelity of the input metrics (e.g., UR is an Ahref's proprietary metric whose tracking criteria are unknown but are surely grounded in their approach to data mining from the organic clickstream).
 
-The accuracy of CAS depends heavily on the fidelity of the input metrics (e.g., true UR, correct external link counts, and meaningful semantic similarity scores).
 
 | Metric             | Authority | Relevance | Link Equity Awareness |
 | ------------------ | --------- | --------- | --------------------- |
@@ -118,19 +106,8 @@ The accuracy of CAS depends heavily on the fidelity of the input metrics (e.g., 
 
 ---
 
-
 ## How is this Helpful for SEO and Digital PR?
 
 - Uncover **undervalued but contextually strong** backlinks.
 - Spot **irrelevant high-DR links** that don’t support your campaign narrative.
 - Prioritise link opportunities that align both **authority** and **semantic context**.
-
----
-
-## Why did I choose Sentence Transformers over Word2Vec or Jina AI?
-
-The script is powered by [SentenceTransformers](https://www.sbert.net/) — chosen for their exceptional semantic accuracy and adaptability across various NLP tasks.
-
-While testing traditional models like **Word2Vec** and some semantic models from **Jina AI**, SentenceTransformers consistently outperformed them in both relevance and robustness of embeddings for cosine similarity computations.
-
----
