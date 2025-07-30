@@ -164,7 +164,7 @@ if uploaded_file and model_choice:
                 similarity_dist,
                 x='Similarity Range',
                 y='Count',
-                title='🔍 Cosine Similarity Distribution',
+                title='Cosine Similarity Distribution',
                 labels={'Count': 'Count of Backlinks', 'Similarity Range': 'Similarity Range'}
             )
             st.plotly_chart(fig_sim_dist, use_container_width=True)
@@ -184,7 +184,7 @@ if uploaded_file and model_choice:
                 cas_dist,
                 x='CAS Range',
                 y='Count',
-                title='⚡ Contextual Authority Score Distribution',
+                title='Contextual Authority Score Distribution',
                 labels={'Count': 'Count of Backlinks', 'CAS Range': 'CAS Range'},
                 color_discrete_sequence=['#ff6b6b']
             )
@@ -209,7 +209,7 @@ if uploaded_file and model_choice:
                 x='Cosine Similarity',
                 y='Referring page URL',
                 orientation='h',
-                title='🎯 Top 10 by Cosine Similarity',
+                title='Top 10 by Cosine Similarity',
                 custom_data=['Target URL']
             )
             fig_top_sim.update_traces(
@@ -231,7 +231,7 @@ if uploaded_file and model_choice:
                 x='Contextual Authority Score',
                 y='Referring page URL',
                 orientation='h',
-                title='⚡ Top 10 by Contextual Authority Score',
+                title='Top 10 by Contextual Authority Score',
                 custom_data=['Target URL'],
                 color_discrete_sequence=['#ff6b6b']
             )
@@ -244,14 +244,11 @@ if uploaded_file and model_choice:
         st.markdown("### 🌊 Sankey Diagram - Top 25 Backlinks by CAS")
         
         # Create Sankey diagram
-        df_top25 = df.sort_values(by='Contextual Authority Score', ascending=False).head(25)
+        df_top25 = df.sort_values(by='Contextual Authority Score (%)', ascending=False).head(25)
         
         if len(df_top25) > 0:
             all_nodes = pd.concat([df_top25['Referring page URL'], df_top25['Target URL']]).unique()
             node_dict = {node: i for i, node in enumerate(all_nodes)}
-            
-            # Create colorful node colors
-            node_colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E9'] * 10
             
             links = []
             for index, row in df_top25.iterrows():
@@ -260,47 +257,43 @@ if uploaded_file and model_choice:
                 
                 # Use Domain rating if available, otherwise use UR
                 if 'Domain rating' in df.columns:
-                    link_value = row['Domain rating'] + row['Contextual Authority Score']
+                    link_value = row['Domain rating'] + row['Contextual Authority Score (%)']
                     dr_label = f"DR: {row['Domain rating']}"
                 else:
-                    link_value = row['UR'] + row['Contextual Authority Score']
+                    link_value = row['UR'] + row['Contextual Authority Score (%)']
                     dr_label = f"UR: {row['UR']}"
                 
                 links.append({
                     'source': source_index,
                     'target': target_index,
                     'value': link_value,
-                    'label': f"{dr_label}, CAS: {row['Contextual Authority Score']}"
+                    'label': f"{dr_label}, CAS: {row['Contextual Authority Score (%)']}%"
                 })
             
             fig_sankey = go.Figure(data=[go.Sankey(
                 node=dict(
                     pad=15,
                     thickness=20,
-                    line=dict(color="white", width=2),
-                    label=all_nodes,
-                    color=node_colors[:len(all_nodes)]
+                    line=dict(color="black", width=0.5),
+                    label=all_nodes
                 ),
                 link=dict(
                     source=[link['source'] for link in links],
                     target=[link['target'] for link in links],
                     value=[link['value'] for link in links],
-                    label=[link['label'] for link in links],
-                    color='rgba(255, 255, 255, 0.3)'
+                    label=[link['label'] for link in links]
                 )
             )])
             
             fig_sankey.update_layout(
                 title_text="Top 25 Backlinks by Contextual Authority Score", 
-                font=dict(color="white", size=12),
-                paper_bgcolor='rgba(0,0,0,0)',
-                plot_bgcolor='rgba(0,0,0,0)',
+                font_size=10,
                 height=600
             )
             st.plotly_chart(fig_sankey, use_container_width=True)
 
     with tab4:
-        st.markdown("### 📈 Scatter Plot Analysis")
+        st.markdown("### 📈 Scatter Plot")
         
         # Domain Rating vs Cosine Similarity scatter plot
         if 'Domain rating' in df.columns:
