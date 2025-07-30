@@ -107,7 +107,7 @@ if uploaded_file and model_choice:
 
         # Scale to 0-100 and convert to integers for display
         df['Cosine Similarity (%)'] = (df['Cosine Similarity'] * 100).round().astype(int)
-        df['Contextual Authority Score (%)'] = (df['Contextual Authority Score'] * 100).round().astype(int)
+        df['Contextual Authority Score'] = (df['Contextual Authority Score'] * 100).round().astype(int)
 
         st.session_state.processed_df = df.copy()
         
@@ -138,13 +138,13 @@ if uploaded_file and model_choice:
             st.metric("Total Backlinks", len(df))
         with col2:
             avg_similarity = df['Cosine Similarity (%)'].mean()
-            st.metric("Avg Similarity", f"{avg_similarity:.1f}%")
+            st.metric("Avg. Cosine Similarity", f"{avg_similarity:.1f}%")
         with col3:
-            avg_cas = df['Contextual Authority Score (%)'].mean()
-            st.metric("Avg CAS", f"{avg_cas:.1f}%")
+            avg_cas = df['Contextual Authority Score'].mean()
+            st.metric("Avg CAS", f"{avg_cas:.0f}")
         with col4:
-            top_cas = df['Contextual Authority Score (%)'].max()
-            st.metric("Max CAS", f"{top_cas}%")
+            max_similarity = df['Cosine Similarity (%)'].max()
+            st.metric("Max Cosine Similarity", f"{max_similarity}%")
 
         # Distribution charts side by side
         col1, col2 = st.columns(2)
@@ -172,7 +172,7 @@ if uploaded_file and model_choice:
         with col2:
             # CAS Distribution
             df['CAS Range'] = pd.cut(
-                df['Contextual Authority Score (%)'],
+                df['Contextual Authority Score'],
                 bins=[0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
                 labels=['0-10', '10-20', '20-30', '30-40', '40-50', '50-60', '60-70', '70-80', '80-90', '90-100'],
                 include_lowest=True
@@ -185,7 +185,7 @@ if uploaded_file and model_choice:
                 x='CAS Range',
                 y='Count',
                 title='⚡ Contextual Authority Score Distribution',
-                labels={'Count': 'Count of Backlinks', 'CAS Range': 'CAS Range (%)'},
+                labels={'Count': 'Count of Backlinks', 'CAS Range': 'CAS Range'},
                 color_discrete_sequence=['#ff6b6b']
             )
             st.plotly_chart(fig_cas_dist, use_container_width=True)
@@ -220,15 +220,15 @@ if uploaded_file and model_choice:
         with col2:
             # Top 10 by CAS
             top_10_cas = (
-                df[['Referring page URL', 'Target URL', 'Contextual Authority Score (%)']]
-                .sort_values(by='Contextual Authority Score (%)', ascending=False)
+                df[['Referring page URL', 'Target URL', 'Contextual Authority Score']]
+                .sort_values(by='Contextual Authority Score', ascending=False)
                 .dropna()
                 .head(10)
             )
             
             fig_top_cas = px.bar(
                 top_10_cas,
-                x='Contextual Authority Score (%)',
+                x='Contextual Authority Score',
                 y='Referring page URL',
                 orientation='h',
                 title='⚡ Top 10 by Contextual Authority Score',
@@ -236,7 +236,7 @@ if uploaded_file and model_choice:
                 color_discrete_sequence=['#ff6b6b']
             )
             fig_top_cas.update_traces(
-                hovertemplate="<b>%{y}</b><br>CAS: %{x}%<br>Target: %{customdata[0]}"
+                hovertemplate="<b>%{y}</b><br>CAS: %{x}<br>Target: %{customdata[0]}"
             )
             st.plotly_chart(fig_top_cas, use_container_width=True)
 
@@ -244,7 +244,7 @@ if uploaded_file and model_choice:
         st.markdown("### 🌊 Sankey Diagram - Top 25 Backlinks by CAS")
         
         # Create Sankey diagram
-        df_top25 = df.sort_values(by='Contextual Authority Score (%)', ascending=False).head(25)
+        df_top25 = df.sort_values(by='Contextual Authority Score', ascending=False).head(25)
         
         if len(df_top25) > 0:
             all_nodes = pd.concat([df_top25['Referring page URL'], df_top25['Target URL']]).unique()
@@ -257,25 +257,26 @@ if uploaded_file and model_choice:
                 
                 # Use Domain rating if available, otherwise use UR
                 if 'Domain rating' in df.columns:
-                    link_value = row['Domain rating'] + row['Contextual Authority Score (%)']
+                    link_value = row['Domain rating'] + row['Contextual Authority Score']
                     dr_label = f"DR: {row['Domain rating']}"
                 else:
-                    link_value = row['UR'] + row['Contextual Authority Score (%)']
+                    link_value = row['UR'] + row['Contextual Authority Score']
                     dr_label = f"UR: {row['UR']}"
                 
                 links.append({
                     'source': source_index,
                     'target': target_index,
                     'value': link_value,
-                    'label': f"{dr_label}, CAS: {row['Contextual Authority Score (%)']}%"
+                    'label': f"{dr_label}, CAS: {row['Contextual Authority Score']}"
                 })
             
             fig_sankey = go.Figure(data=[go.Sankey(
                 node=dict(
                     pad=15,
                     thickness=20,
-                    line=dict(color="black", width=0.5),
-                    label=all_nodes
+                    line=dict(color="white", width=0.5),
+                    label=all_nodes,
+                    color="white"
                 ),
                 link=dict(
                     source=[link['source'] for link in links],
@@ -287,7 +288,7 @@ if uploaded_file and model_choice:
             
             fig_sankey.update_layout(
                 title_text="Top 25 Backlinks by Contextual Authority Score", 
-                font_size=10,
+                font=dict(color="white", size=10),
                 height=600
             )
             st.plotly_chart(fig_sankey, use_container_width=True)
@@ -301,20 +302,16 @@ if uploaded_file and model_choice:
                 df, 
                 x='Cosine Similarity (%)', 
                 y='Domain rating',
-                title='Domain Rating vs Cosine Similarity',
-                hover_data=['Referring page URL', 'Contextual Authority Score (%)'],
-                color='Contextual Authority Score (%)',
-                color_continuous_scale='viridis'
+                title='Domain Rating vs Cosine Similarity - Correlation Analysis',
+                hover_data=['Referring page URL']
             )
         else:
             fig_scatter = px.scatter(
                 df, 
                 x='Cosine Similarity (%)', 
                 y='UR',
-                title='URL Rating vs Cosine Similarity',
-                hover_data=['Referring page URL', 'Contextual Authority Score (%)'],
-                color='Contextual Authority Score (%)',
-                color_continuous_scale='viridis'
+                title='URL Rating vs Cosine Similarity - Correlation Analysis',
+                hover_data=['Referring page URL']
             )
         
         fig_scatter.update_layout(height=500)
@@ -325,7 +322,7 @@ if uploaded_file and model_choice:
         
         # Display columns based on what's available
         display_columns = ['Referring page URL', 'Target URL', 'UR', 'External links', 
-                          'Cosine Similarity (%)', 'Contextual Authority Score (%)']
+                          'Cosine Similarity (%)', 'Contextual Authority Score']
         
         if 'Domain rating' in df.columns:
             display_columns.insert(1, 'Domain rating')
@@ -334,7 +331,7 @@ if uploaded_file and model_choice:
         available_columns = [col for col in display_columns if col in df.columns]
         
         st.dataframe(
-            df[available_columns].sort_values(by='Contextual Authority Score (%)', ascending=False),
+            df[available_columns].sort_values(by='Contextual Authority Score', ascending=False),
             use_container_width=True, 
             height=600
         )
