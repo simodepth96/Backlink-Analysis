@@ -244,7 +244,8 @@ if uploaded_file and model_choice:
         st.markdown("### 🌊 Sankey Diagram - Top 25 Backlinks by CAS")
         
         # Create Sankey diagram
-        df_top25 = df.sort_values(by='Contextual Authority Score (%)', ascending=False).head(25)
+        df_top25 = df.sort_values(by='Contextual Authority Score', ascending=False).head(25)
+
         
         if len(df_top25) > 0:
             all_nodes = pd.concat([df_top25['Referring page URL'], df_top25['Target URL']]).unique()
@@ -257,11 +258,12 @@ if uploaded_file and model_choice:
                 
                 # Use Domain rating if available, otherwise use UR
                 if 'Domain rating' in df.columns:
-                    link_value = row['Domain rating'] + row['Contextual Authority Score (%)']
+                    link_value = row['Domain rating'] + row['Contextual Authority Score']
                     dr_label = f"DR: {row['Domain rating']}"
                 else:
-                    link_value = row['UR'] + row['Contextual Authority Score (%)']
+                    link_value = row['UR'] + row['Contextual Authority Score']
                     dr_label = f"UR: {row['UR']}"
+
                 
                 links.append({
                     'source': source_index,
