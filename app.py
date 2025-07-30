@@ -7,6 +7,9 @@ from scipy.spatial.distance import cosine
 from io import BytesIO
 import plotly.express as px
 import plotly.graph_objects as go
+import holoviews as hv
+from holoviews import opts
+hv.extension('bokeh')
 
 # Configure Streamlit page
 st.set_page_config(page_title="Backlink Semantic Similarity & Authority Analysis", layout="wide")
@@ -240,58 +243,34 @@ if uploaded_file and model_choice:
             )
             st.plotly_chart(fig_top_cas, use_container_width=True)
 
-    with tab3:
-        st.markdown("### 🌊 Sankey Diagram - Top 25 Backlinks by CAS")
-        
-        # Create Sankey diagram
-        df_top25 = df.sort_values(by='Contextual Authority Score', ascending=False).head(25)
-        
-        if len(df_top25) > 0:
-            all_nodes = pd.concat([df_top25['Referring page URL'], df_top25['Target URL']]).unique()
-            node_dict = {node: i for i, node in enumerate(all_nodes)}
-            
-            links = []
-            for index, row in df_top25.iterrows():
-                source_index = node_dict[row['Referring page URL']]
-                target_index = node_dict[row['Target URL']]
-                
-                # Use Domain rating if available, otherwise use UR
-                if 'Domain rating' in df.columns:
-                    link_value = row['Domain rating'] + row['Contextual Authority Score']
-                    dr_label = f"DR: {row['Domain rating']}"
-                else:
-                    link_value = row['UR'] + row['Contextual Authority Score']
-                    dr_label = f"UR: {row['UR']}"
-                
-                links.append({
-                    'source': source_index,
-                    'target': target_index,
-                    'value': link_value,
-                    'label': f"{dr_label}, CAS: {row['Contextual Authority Score']}"
-                })
-            
-            fig_sankey = go.Figure(data=[go.Sankey(
-                node=dict(
-                    pad=15,
-                    thickness=20,
-                    line=dict(color="black", width=0.5),
-                    label=all_nodes,
-                    color="black"
-                ),
-                link=dict(
-                    source=[link['source'] for link in links],
-                    target=[link['target'] for link in links],
-                    value=[link['value'] for link in links],
-                    label=[link['label'] for link in links]
-                )
-            )])
-            
-            fig_sankey.update_layout(
-                title_text="Top 25 Backlinks by Contextual Authority Score", 
-                font=dict(color="white", size=10),
-                height=600
-            )
-            st.plotly_chart(fig_sankey, use_container_width=True)
+
+# Prepare the top 25 dataframe
+df_top25 = df.sort_values(by='Contextual Authority Score', ascending=False).head(25)
+
+# Build edge list: [source_label, target_label, value]
+edges = []
+for _, row in df_top25.iterrows():
+    source = row['Referring page URL']
+    target = row['Target URL']
+    cas = row['Contextual Authority Score']
+    value = (row.get('Domain rating', row['UR']) + cas)
+    edges.append([source, target, value])
+
+# Create Sankey element
+sankey = hv.Sankey(edges, kdims=['Source', 'Target'], vdims=['Value'])
+
+# Optional styling: node labels, edge colors, etc.
+sankey = sankey.opts(
+    width=800, height=600,
+    node_width=20, node_padding=10,
+    edge_color='Value', cmap='Blues',
+    labels='index', label_position='right',
+    edge_alpha=0.8, title="Top 25 Backlinks by CAS"
+)
+
+with tab3:
+    st.markdown("### 🌊 Sankey Diagram – Top 25 Backlinks by CAS")
+    st.components.v1.html(hv.render(sankey, backend='bokeh').to_html(), height=650)
 
 
     with tab4:
