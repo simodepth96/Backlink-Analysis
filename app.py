@@ -247,52 +247,61 @@ if uploaded_file and model_choice:
         df_top25 = df.sort_values(by='Contextual Authority Score', ascending=False).head(25)
 
         
-        if len(df_top25) > 0:
-            all_nodes = pd.concat([df_top25['Referring page URL'], df_top25['Target URL']]).unique()
-            node_dict = {node: i for i, node in enumerate(all_nodes)}
-            
-            links = []
-            for index, row in df_top25.iterrows():
-                source_index = node_dict[row['Referring page URL']]
-                target_index = node_dict[row['Target URL']]
-                
-                # Use Domain rating if available, otherwise use UR
-                if 'Domain rating' in df.columns:
-                    link_value = row['Domain rating'] + row['Contextual Authority Score']
-                    dr_label = f"DR: {row['Domain rating']}"
-                else:
-                    link_value = row['UR'] + row['Contextual Authority Score']
-                    dr_label = f"UR: {row['UR']}"
+# Ensure the column exists
+if 'Contextual Authority Score' not in df.columns:
+    st.error("Missing 'Contextual Authority Score' column.")
+else:
+    df_top25 = df.sort_values(by='Contextual Authority Score', ascending=False).head(25)
 
-                
-                links.append({
-                    'source': source_index,
-                    'target': target_index,
-                    'value': link_value,
-                    'label': f"{dr_label}, CAS: {row['Contextual Authority Score (%)']}%"
-                })
-            
-            fig_sankey = go.Figure(data=[go.Sankey(
-                node=dict(
-                    pad=15,
-                    thickness=20,
-                    line=dict(color="black", width=0.5),
-                    label=all_nodes
-                ),
-                link=dict(
-                    source=[link['source'] for link in links],
-                    target=[link['target'] for link in links],
-                    value=[link['value'] for link in links],
-                    label=[link['label'] for link in links]
-                )
-            )])
-            
-            fig_sankey.update_layout(
-                title_text="Top 25 Backlinks by Contextual Authority Score", 
-                font_size=10,
-                height=600
+    if len(df_top25) > 0:
+        # Build node list and dictionary
+        nodes = pd.concat([df_top25['Referring page URL'], df_top25['Target URL']]).unique()
+        node_indices = {url: i for i, url in enumerate(nodes)}
+
+        # Build links
+        sources, targets, values, labels = [], [], [], []
+
+        for _, row in df_top25.iterrows():
+            src = node_indices[row['Referring page URL']]
+            tgt = node_indices[row['Target URL']]
+
+            cas = row['Contextual Authority Score']
+            ur = row.get('UR', 0)
+            dr = row.get('Domain rating', None)
+
+            metric_label = f"DR: {dr}" if dr is not None else f"UR: {ur}"
+            value = dr + cas if dr is not None else ur + cas
+
+            sources.append(src)
+            targets.append(tgt)
+            values.append(value)
+            labels.append(f"{metric_label}, CAS: {round(cas, 2)}")
+
+        # Plotly Sankey chart
+        fig = go.Figure(data=[go.Sankey(
+            node=dict(
+                pad=15,
+                thickness=20,
+                line=dict(color="black", width=0.5),
+                label=nodes
+            ),
+            link=dict(
+                source=sources,
+                target=targets,
+                value=values,
+                label=labels
             )
-            st.plotly_chart(fig_sankey, use_container_width=True)
+        )])
+
+        fig.update_layout(
+            title_text="Top 25 Backlinks by Contextual Authority Score",
+            font_size=10,
+            height=600
+        )
+
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("No data available to build the Sankey diagram.")
 
     with tab4:
         st.markdown("### 📈 Scatter Plot")
