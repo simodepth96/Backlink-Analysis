@@ -138,7 +138,7 @@ if uploaded_file and model_choice:
                 include_lowest=True
             )
             sim_dist = df.groupby('Similarity Range')['Referring page URL'].count().reset_index().rename(columns={'Referring page URL': 'Count'})
-            st.plotly_chart(px.bar(sim_dist, x='Similarity Range', y='Count', title='🔍 Cosine Similarity Distribution'), use_container_width=True)
+            st.plotly_chart(px.bar(sim_dist, x='Similarity Range', y='Count', title='Cosine Similarity Distribution'), use_container_width=True)
 
         with col2:
             df['CAS Range'] = pd.cut(
@@ -148,37 +148,17 @@ if uploaded_file and model_choice:
                 include_lowest=True
             )
             cas_dist = df.groupby('CAS Range')['Referring page URL'].count().reset_index().rename(columns={'Referring page URL': 'Count'})
-            st.plotly_chart(px.bar(cas_dist, x='CAS Range', y='Count', title='⚡ Contextual Authority Score Distribution'), use_container_width=True)
+            st.plotly_chart(px.bar(cas_dist, x='CAS Range', y='Count', title='Contextual Authority Score Distribution',color_discrete_sequence=['#ff6b6b']), use_container_width=True)
 
     with tab2:
         st.markdown("### 🏆 Top Performing Backlinks")
         col1, col2 = st.columns(2)
         with col1:
             top_sim = df.sort_values(by='Cosine Similarity', ascending=False).head(10)
-            st.plotly_chart(px.bar(top_sim, x='Cosine Similarity', y='Referring page URL', orientation='h', title='🎯 Top 10 by Cosine Similarity'), use_container_width=True)
+            st.plotly_chart(px.bar(top_sim, x='Cosine Similarity', y='Referring page URL', orientation='h', title='Top 10 by Cosine Similarity'), use_container_width=True)
         with col2:
             top_cas = df.sort_values(by='Contextual Authority Score', ascending=False).head(10)
-            st.plotly_chart(px.bar(top_cas, x='Contextual Authority Score', y='Referring page URL', orientation='h', title='⚡ Top 10 by Contextual Authority Score'), use_container_width=True)
-
-    with tab3:
-        st.markdown("### 🌊 Sankey Diagram - Top 25 Backlinks by CAS")
-        df_top25 = df.sort_values(by='Contextual Authority Score', ascending=False).head(25)
-        if not df_top25.empty:
-            sources = df_top25['Referring page URL'].tolist()
-            targets = df_top25['Target URL'].tolist()
-            all_nodes = list(set(sources + targets))
-            node_map = {node: idx for idx, node in enumerate(all_nodes)}
-            source_indices = [node_map[src] for src in sources]
-            target_indices = [node_map[tgt] for tgt in targets]
-            values = (df_top25['Domain rating'] + df_top25['Contextual Authority Score']).tolist() if 'Domain rating' in df.columns else (df_top25['UR'] + df_top25['Contextual Authority Score']).tolist()
-            fig_sankey = go.Figure(data=[go.Sankey(
-                node=dict(label=[n[:50]+"..." if len(n)>50 else n for n in all_nodes], pad=15, thickness=20),
-                link=dict(source=source_indices, target=target_indices, value=values)
-            )])
-            fig_sankey.update_layout(title_text="Top 25 Backlinks by CAS", height=600)
-            st.plotly_chart(fig_sankey, use_container_width=True)
-        else:
-            st.warning("No data available for Sankey diagram.")
+            st.plotly_chart(px.bar(top_cas, x='Contextual Authority Score', y='Referring page URL', orientation='h', title='Top 10 by Contextual Authority Score',color_discrete_sequence=['#ff6b6b']), use_container_width=True)
 
     with tab4:
         st.markdown("### 📈 Scatter Plot Analysis")
