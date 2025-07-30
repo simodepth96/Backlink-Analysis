@@ -274,9 +274,9 @@ if uploaded_file and model_choice:
                 node=dict(
                     pad=15,
                     thickness=20,
-                    line=dict(color="white", width=0.5),
+                    line=dict(color="black", width=0.5),
                     label=all_nodes,
-                    color="white"
+                    color="black"
                 ),
                 link=dict(
                     source=[link['source'] for link in links],
