@@ -6,6 +6,7 @@ from sentence_transformers import SentenceTransformer
 from scipy.spatial.distance import cosine
 from io import BytesIO
 import plotly.express as px
+import plotly.graph_objects as go
 
 # Configure Streamlit page
 st.set_page_config(page_title="Backlink Analysis", layout="wide")
@@ -107,9 +108,10 @@ if uploaded_file and model_choice:
 
     df = st.session_state.processed_df
 
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "📊 Overview",
         "🏆 Top Performers",
+        "🔗 Link Flow",
         "📈 Scatter Analysis",
         "📋 Data Table",
         "📥 Download"
@@ -153,24 +155,88 @@ if uploaded_file and model_choice:
         
         top_sim = df.sort_values(by='Cosine Similarity', ascending=False).head(10)
         st.plotly_chart(px.bar(top_sim, x='Cosine Similarity', y='Referring page URL', orientation='h', title='Top 10 by Cosine Similarity'), use_container_width=True)
+        st.caption("💡 **Cosine Similarity** measures how closely the content of referring pages matches your target page's content. Higher scores indicate more topically relevant backlinks.")
     
         top_cas = df.sort_values(by='Contextual Authority Score', ascending=False).head(10)
         st.plotly_chart(px.bar(top_cas, x='Contextual Authority Score', y='Referring page URL', orientation='h', title='Top 10 by Contextual Authority Score', color_discrete_sequence=['#ff6b6b']), use_container_width=True)
-       
+        st.caption("📈 **Contextual Authority Score (CAS)** combines link authority with topical relevance. It factors in the page's URL Rating, link dilution (external links), and semantic similarity for a comprehensive quality score.")
+
     with tab3:
+        st.markdown("### 🔗 Backlink Flow Visualization")
+        
+        # Create Sankey diagram data
+        # Limit to top 15 backlinks for readability
+        top_backlinks = df.nlargest(15, 'Contextual Authority Score')
+        
+        # Extract domain names for cleaner visualization
+        def extract_domain(url):
+            if pd.isna(url):
+                return "Unknown"
+            # Remove protocol and www
+            domain = re.sub(r'https?://(www\.)?', '', str(url))
+            # Get the domain part (before first slash)
+            domain = domain.split('/')[0]
+            # Truncate long domains
+            if len(domain) > 30:
+                domain = domain[:27] + "..."
+            return domain
+        
+        top_backlinks['Source Domain'] = top_backlinks['Referring page URL'].apply(extract_domain)
+        top_backlinks['Target Domain'] = top_backlinks['Target URL'].apply(extract_domain)
+        
+        # Create unique node lists
+        source_nodes = top_backlinks['Source Domain'].unique().tolist()
+        target_nodes = top_backlinks['Target Domain'].unique().tolist()
+        all_nodes = source_nodes + [node for node in target_nodes if node not in source_nodes]
+        
+        # Create node indices
+        node_indices = {node: i for i, node in enumerate(all_nodes)}
+        
+        # Create links
+        source_indices = [node_indices[domain] for domain in top_backlinks['Source Domain']]
+        target_indices = [node_indices[domain] for domain in top_backlinks['Target Domain']]
+        values = top_backlinks['Contextual Authority Score'].tolist()
+        
+        # Create the Sankey diagram
+        fig_sankey = go.Figure(data=[go.Sankey(
+            node=dict(
+                pad=15,
+                thickness=20,
+                line=dict(color="black", width=0.5),
+                label=all_nodes,
+                color=["lightblue" if node in source_nodes else "lightcoral" for node in all_nodes]
+            ),
+            link=dict(
+                source=source_indices,
+                target=target_indices,
+                value=values,
+                color="rgba(255, 107, 107, 0.4)"
+            )
+        )])
+        
+        fig_sankey.update_layout(
+            title_text="Backlink Flow: Referring Domains → Target Domains<br><sub>Flow thickness represents Contextual Authority Score</sub>",
+            font_size=10,
+            height=600
+        )
+        
+        st.plotly_chart(fig_sankey, use_container_width=True)
+        st.caption("🌊 **Link Flow Diagram** shows the relationship between referring domains and target domains. The thickness of each flow represents the Contextual Authority Score, helping you visualize which domains are sending the most valuable backlinks.")
+
+    with tab4:
         st.markdown("### 📈 Scatter Plot Analysis")
         y_col = 'Domain rating' if 'Domain rating' in df.columns else 'UR'
         fig_scatter = px.scatter(df, x='Cosine Similarity', y=y_col, hover_data=['Referring page URL'], title=f'{y_col} vs Cosine Similarity')
         st.plotly_chart(fig_scatter, use_container_width=True)
 
-    with tab4:
+    with tab5:
         st.markdown("### 📋 Complete Data Table")
         cols = ['Referring page URL', 'Target URL', 'UR', 'External links', 'Cosine Similarity', 'Contextual Authority Score']
         if 'Domain rating' in df.columns:
             cols.insert(1, 'Domain rating')
         st.dataframe(df[cols].sort_values(by='Contextual Authority Score', ascending=False), use_container_width=True, height=600)
 
-    with tab5:
+    with tab6:
         st.markdown("### 📥 Download Results")
         st.download_button(
             label="📥 Download Enhanced Results as Excel",
