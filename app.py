@@ -163,8 +163,8 @@ if uploaded_file and model_choice:
     
 
     with tab3:
-        st.markdown("### Backlink Flow - Referring Domains Relevance to your Target Domain")
-        st.caption("**This diagram shows the relationship between referring domains and target domains. The thickness of each flow represents the Contextual Authority Score, helping you visualize which domains are sending the most valuable backlinks.")
+        st.markdown("### 🔗 Referring Domains Relevance to your Target Domain")
+        st.caption("This diagram shows the relationship between referring domains and target domains. The thickness of each flow represents the Contextual Authority Score, helping you visualize which domains are sending the most valuable backlinks.")
 
         # Create Sankey diagram data
         # Limit to top 15 backlinks for readability
