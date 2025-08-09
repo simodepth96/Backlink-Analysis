@@ -49,13 +49,11 @@ Simply upload an Ahrefs backlink export in `.xlsx` format and evaluate your bran
 
 ---
 ## What's Cosine Similarity?
-Cosine similarity is used as a notion of proximity between the vectors to express a score of similarity between the documents, namely the backlink URLs and the related Target URL. 
+Cosine similarity is a way to measure how similar two pieces of text are. In this project, it draws on URL strings to return a measure of similarity between a backlink URL and its target page. 
 
 ## Why Combine DR and Semantic Similarity?
 
-While Domain Rating is a widely used authority signal, it has limitations and can be influenced by outliers depending on how third-party providers (Ahrefs, SEMrush) trained their datasets and how machine learning systems were instructed to retrieve the raw data to build up the metric.
-
-Adding cosine similarity between backlinks and target URLs gives your analysis an additional **semantic layer of precision**.
+Domain Rating (DR) is a popular measure of a site’s authority, but it’s not perfect — it can be affected by unusual data or the way different SEO tools calculate it. By adding cosine similarity, you measure how relevant the backlink’s content is to your page, giving a more accurate picture of link quality.
 
 > ✅ **Ideal backlinks**: High DR + High Cosine Similarity (close to 1)  
 > ⚠️ **Potential red flags**: Low DR and Low Semantic Similarity  
@@ -92,14 +90,9 @@ The measure ponders:
 
 > CAS = (UR / ExLC) × S
 
-ExLC (External Link Count) = 
-
-S (Semantic Similarity) = 
-- UR (URL Rating): strength of the specific linking page (not the whole site).
-
-- ExLC (External Link Count): number of outbound links (pointing to external domains) from the linking page. It serves as a dilution factor, reducing the perceived value of a backlink when it's one of many on a page.
-
-- S (Cosine Similarity): A semantic similarity score that reflects how topically relevant the link is to your page.
+- **UR** (URL Rating): strength of the specific linking page (not the whole site).
+- **ExLC** (External Link Count): number of outbound links (pointing to external domains) from the linking page. It serves as a dilution factor, reducing the perceived value of a backlink when it's one of many on a page.
+- **S** (Cosine Similarity): A semantic similarity score that reflects how topically relevant the link is to your page.
 
 📊 Interpretation of CAS Values:
 - **✅ High CAS** → A link is both authoritative and topically relevant.
