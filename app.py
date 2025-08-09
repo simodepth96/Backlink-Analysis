@@ -159,23 +159,10 @@ if uploaded_file and model_choice:
             # Prepare data for Cosine Similarity heatmap
             top_sim = df.sort_values(by='Cosine Similarity', ascending=False).head(15)
             
-            # Extract domain names for cleaner display
-            def extract_domain(url):
-                if pd.isna(url):
-                    return "Unknown"
-                domain = re.sub(r'https?://(www\.)?', '', str(url))
-                domain = domain.split('/')[0]
-                if len(domain) > 25:
-                    domain = domain[:22] + "..."
-                return domain
-            
-            top_sim['Referring Domain'] = top_sim['Referring page URL'].apply(extract_domain)
-            top_sim['Target Domain'] = top_sim['Target URL'].apply(extract_domain)
-            
-            # Create pivot table for heatmap
+            # Create pivot table for heatmap using full URLs
             heatmap_data_sim = top_sim.pivot_table(
-                index='Referring Domain', 
-                columns='Target Domain', 
+                index='Referring page URL', 
+                columns='Target URL', 
                 values='Cosine Similarity', 
                 aggfunc='mean'
             ).fillna(0)
@@ -184,7 +171,7 @@ if uploaded_file and model_choice:
                 heatmap_data_sim,
                 color_continuous_scale='Blues',
                 title='Cosine Similarity Heatmap',
-                labels=dict(x="Target Domain", y="Referring Domain", color="Cosine Similarity"),
+                labels=dict(x="Target URL", y="Referring page URL", color="Cosine Similarity"),
                 text_auto=True
             )
             fig_heatmap_sim.update_layout(height=500)
@@ -194,13 +181,11 @@ if uploaded_file and model_choice:
         with col2:
             # Prepare data for CAS heatmap
             top_cas = df.sort_values(by='Contextual Authority Score', ascending=False).head(15)
-            top_cas['Referring Domain'] = top_cas['Referring page URL'].apply(extract_domain)
-            top_cas['Target Domain'] = top_cas['Target URL'].apply(extract_domain)
             
-            # Create pivot table for heatmap
+            # Create pivot table for heatmap using full URLs
             heatmap_data_cas = top_cas.pivot_table(
-                index='Referring Domain', 
-                columns='Target Domain', 
+                index='Referring page URL', 
+                columns='Target URL', 
                 values='Contextual Authority Score', 
                 aggfunc='mean'
             ).fillna(0)
@@ -209,7 +194,7 @@ if uploaded_file and model_choice:
                 heatmap_data_cas,
                 color_continuous_scale='Reds',
                 title='Contextual Authority Score Heatmap',
-                labels=dict(x="Target Domain", y="Referring Domain", color="CAS"),
+                labels=dict(x="Target URL", y="Referring page URL", color="CAS"),
                 text_auto=True
             )
             fig_heatmap_cas.update_layout(height=500)
