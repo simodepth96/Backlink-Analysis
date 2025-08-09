@@ -153,13 +153,68 @@ if uploaded_file and model_choice:
     with tab2:
         st.markdown("### 🏆 Top Performing Backlinks")
         
-        top_sim = df.sort_values(by='Cosine Similarity', ascending=False).head(10)
-        st.plotly_chart(px.bar(top_sim, x='Cosine Similarity', y='Referring page URL', orientation='h', title='Top 10 by Cosine Similarity', hover_data=['Target URL']), use_container_width=True)
-        st.caption("💡 **Cosine Similarity** measures how closely the content of referring pages matches your target page's content. Higher scores indicate more topically relevant backlinks.")
-    
-        top_cas = df.sort_values(by='Contextual Authority Score', ascending=False).head(10)
-        st.plotly_chart(px.bar(top_cas, x='Contextual Authority Score', y='Referring page URL', orientation='h', title='Top 10 by Contextual Authority Score', color_discrete_sequence=['#ff6b6b'], hover_data=['Target URL']), use_container_width=True)
-        st.caption("📈 **Contextual Authority Score (CAS)** combines link authority with topical relevance. It factors in the page's URL Rating, link dilution (external links), and semantic similarity for a comprehensive quality score.")
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            # Prepare data for Cosine Similarity heatmap
+            top_sim = df.sort_values(by='Cosine Similarity', ascending=False).head(15)
+            
+            # Extract domain names for cleaner display
+            def extract_domain(url):
+                if pd.isna(url):
+                    return "Unknown"
+                domain = re.sub(r'https?://(www\.)?', '', str(url))
+                domain = domain.split('/')[0]
+                if len(domain) > 25:
+                    domain = domain[:22] + "..."
+                return domain
+            
+            top_sim['Referring Domain'] = top_sim['Referring page URL'].apply(extract_domain)
+            top_sim['Target Domain'] = top_sim['Target URL'].apply(extract_domain)
+            
+            # Create pivot table for heatmap
+            heatmap_data_sim = top_sim.pivot_table(
+                index='Referring Domain', 
+                columns='Target Domain', 
+                values='Cosine Similarity', 
+                aggfunc='mean'
+            ).fillna(0)
+            
+            fig_heatmap_sim = px.imshow(
+                heatmap_data_sim,
+                color_continuous_scale='Blues',
+                title='Cosine Similarity Heatmap',
+                labels=dict(x="Target Domain", y="Referring Domain", color="Cosine Similarity"),
+                text_auto=True
+            )
+            fig_heatmap_sim.update_layout(height=500)
+            st.plotly_chart(fig_heatmap_sim, use_container_width=True)
+            st.caption("💡 **Cosine Similarity** measures how closely the content of referring pages matches your target page's content. Higher scores indicate more topically relevant backlinks.")
+        
+        with col2:
+            # Prepare data for CAS heatmap
+            top_cas = df.sort_values(by='Contextual Authority Score', ascending=False).head(15)
+            top_cas['Referring Domain'] = top_cas['Referring page URL'].apply(extract_domain)
+            top_cas['Target Domain'] = top_cas['Target URL'].apply(extract_domain)
+            
+            # Create pivot table for heatmap
+            heatmap_data_cas = top_cas.pivot_table(
+                index='Referring Domain', 
+                columns='Target Domain', 
+                values='Contextual Authority Score', 
+                aggfunc='mean'
+            ).fillna(0)
+            
+            fig_heatmap_cas = px.imshow(
+                heatmap_data_cas,
+                color_continuous_scale='Reds',
+                title='Contextual Authority Score Heatmap',
+                labels=dict(x="Target Domain", y="Referring Domain", color="CAS"),
+                text_auto=True
+            )
+            fig_heatmap_cas.update_layout(height=500)
+            st.plotly_chart(fig_heatmap_cas, use_container_width=True)
+            st.caption("📈 **Contextual Authority Score (CAS)** combines link authority with topical relevance. It factors in the page's URL Rating, link dilution (external links), and semantic similarity for a comprehensive quality score.")
 
     with tab3:
         st.markdown("### 🔗 Backlink Flow Visualization")
@@ -215,13 +270,13 @@ if uploaded_file and model_choice:
         )])
         
         fig_sankey.update_layout(
-            title_text="Referring Domain → Target Domain<br><sub>Flow thickness represents Contextual Authority Score</sub>",
+            title_text="Backlink Flow: Referring Domains → Target Domains<br><sub>Flow thickness represents Contextual Authority Score</sub>",
             font_size=10,
             height=600
         )
         
         st.plotly_chart(fig_sankey, use_container_width=True)
-        st.caption("🌊 **Backlink Diagram** shows the relationship between referring domains and target domains. The thickness of each flow represents the Contextual Authority Score, helping you visualize which domains are sending the most valuable backlinks.")
+        st.caption("🌊 **Link Flow Diagram** shows the relationship between referring domains and target domains. The thickness of each flow represents the Contextual Authority Score, helping you visualize which domains are sending the most valuable backlinks.")
 
     with tab4:
         st.markdown("### 📈 Scatter Plot Analysis")
