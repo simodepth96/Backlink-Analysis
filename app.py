@@ -163,8 +163,9 @@ if uploaded_file and model_choice:
     
 
     with tab3:
-        st.markdown("### Referring Domains Relevance to your Target Domain")
-        
+        st.markdown("### Backlink Flow - Referring Domains Relevance to your Target Domain")
+        st.caption("**This diagram shows the relationship between referring domains and target domains. The thickness of each flow represents the Contextual Authority Score, helping you visualize which domains are sending the most valuable backlinks.")
+
         # Create Sankey diagram data
         # Limit to top 15 backlinks for readability
         top_backlinks = df.nlargest(15, 'Contextual Authority Score')
@@ -216,14 +217,13 @@ if uploaded_file and model_choice:
         )])
         
         fig_sankey.update_layout(
-            title_text="Backlink Flow: Referring Domains → Target Domains<br><sub>Flow thickness represents Contextual Authority Score</sub>",
+            title_text="<br><sub>Flow thickness represents Contextual Authority Score</sub>",
             font_size=10,
             height=600
         )
         
         st.plotly_chart(fig_sankey, use_container_width=True)
-        st.caption("🌊 **Link Flow Diagram** shows the relationship between referring domains and target domains. The thickness of each flow represents the Contextual Authority Score, helping you visualize which domains are sending the most valuable backlinks.")
-
+        
     with tab4:
         st.markdown("### 📋 Complete Data Table")
         cols = ['Referring page URL', 'Target URL', 'UR', 'External links', 'Cosine Similarity', 'Contextual Authority Score']
