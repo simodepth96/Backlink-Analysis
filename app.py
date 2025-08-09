@@ -108,11 +108,10 @@ if uploaded_file and model_choice:
 
     df = st.session_state.processed_df
 
-    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "📊 Overview",
         "🏆 Top Performers",
         "🔗 Backlink Flow",
-        "📈 Scatter Analysis",
         "📋 Data Table",
         "📥 Download"
     ])
@@ -164,7 +163,7 @@ if uploaded_file and model_choice:
     
 
     with tab3:
-        st.markdown("### 🔗 Backlink Flow Visualization")
+        st.markdown("### Referring Domains Relevance to your Target Domain")
         
         # Create Sankey diagram data
         # Limit to top 15 backlinks for readability
@@ -226,19 +225,13 @@ if uploaded_file and model_choice:
         st.caption("🌊 **Link Flow Diagram** shows the relationship between referring domains and target domains. The thickness of each flow represents the Contextual Authority Score, helping you visualize which domains are sending the most valuable backlinks.")
 
     with tab4:
-        st.markdown("### 📈 Scatter Plot Analysis")
-        y_col = 'Domain rating' if 'Domain rating' in df.columns else 'UR'
-        fig_scatter = px.scatter(df, x='Cosine Similarity', y=y_col, hover_data=['Referring page URL'], title=f'{y_col} vs Cosine Similarity')
-        st.plotly_chart(fig_scatter, use_container_width=True)
-
-    with tab5:
         st.markdown("### 📋 Complete Data Table")
         cols = ['Referring page URL', 'Target URL', 'UR', 'External links', 'Cosine Similarity', 'Contextual Authority Score']
         if 'Domain rating' in df.columns:
             cols.insert(1, 'Domain rating')
         st.dataframe(df[cols].sort_values(by='Contextual Authority Score', ascending=False), use_container_width=True, height=600)
 
-    with tab6:
+    with tab5:
         st.markdown("### 📥 Download Results")
         st.download_button(
             label="📥 Download Enhanced Results as Excel",
