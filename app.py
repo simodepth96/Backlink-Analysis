@@ -251,6 +251,7 @@ else:
     with st.expander("ℹ️ About this tool"):
         st.markdown("""
         **This tool analyzes backlink semantic similarity and contextual authority:**
+        **It is highly recommended that you upload an XLSX file with backlinks placed in the content area of the target site.**
 
         - **Cosine Similarity**: Measures semantic similarity between referring and target URLs
         - **Contextual Authority Score (CAS)**: A relevance-weighted backlink metric that combines link authority, link dilution, and topical similarity
