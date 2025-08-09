@@ -139,6 +139,7 @@ if uploaded_file and model_choice:
             )
             sim_dist = df.groupby('Similarity Range')['Referring page URL'].count().reset_index().rename(columns={'Referring page URL': 'Count'})
             st.plotly_chart(px.bar(sim_dist, x='Similarity Range', y='Count', title='Cosine Similarity Distribution'), use_container_width=True)
+            st.caption("💡 **Cosine Similarity** measures how closely the content of referring pages matches your target page's content. Higher scores indicate more topically relevant backlinks.")
 
         with col2:
             df['CAS Range'] = pd.cut(
@@ -149,17 +150,18 @@ if uploaded_file and model_choice:
             )
             cas_dist = df.groupby('CAS Range')['Referring page URL'].count().reset_index().rename(columns={'Referring page URL': 'Count'})
             st.plotly_chart(px.bar(cas_dist, x='CAS Range', y='Count', title='Contextual Authority Score Distribution',color_discrete_sequence=['#ff6b6b']), use_container_width=True)
+            st.caption("📈 **Contextual Authority Score (CAS)** combines link authority with topical relevance. It factors in the page's URL Rating, link dilution (external links), and semantic similarity for a comprehensive quality score.")
 
     with tab2:
         st.markdown("### 🏆 Top Performing Backlinks")
         
         top_sim = df.sort_values(by='Cosine Similarity', ascending=False).head(10)
         st.plotly_chart(px.bar(top_sim, x='Cosine Similarity', y='Referring page URL', orientation='h', title='Top 10 by Cosine Similarity', hover_data=['Target URL']), use_container_width=True)
-        st.caption("💡 **Cosine Similarity** measures how closely the content of referring pages matches your target page's content. Higher scores indicate more topically relevant backlinks.")
+    
     
         top_cas = df.sort_values(by='Contextual Authority Score', ascending=False).head(10)
         st.plotly_chart(px.bar(top_cas, x='Contextual Authority Score', y='Referring page URL', orientation='h', title='Top 10 by Contextual Authority Score', color_discrete_sequence=['#ff6b6b'], hover_data=['Target URL']), use_container_width=True)
-        st.caption("📈 **Contextual Authority Score (CAS)** combines link authority with topical relevance. It factors in the page's URL Rating, link dilution (external links), and semantic similarity for a comprehensive quality score.")
+    
 
     with tab3:
         st.markdown("### 🔗 Backlink Flow Visualization")
