@@ -111,7 +111,7 @@ if uploaded_file and model_choice:
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "📊 Overview",
         "🏆 Top Performers",
-        "🔗 Backlink Flow",
+        "🔗 Link Flow",
         "📈 Scatter Analysis",
         "📋 Data Table",
         "📥 Download"
@@ -156,49 +156,13 @@ if uploaded_file and model_choice:
         col1, col2 = st.columns(2)
         
         with col1:
-            # Prepare data for Cosine Similarity heatmap
-            top_sim = df.sort_values(by='Cosine Similarity', ascending=False).head(15)
-            
-            # Create pivot table for heatmap using full URLs
-            heatmap_data_sim = top_sim.pivot_table(
-                index='Referring page URL', 
-                columns='Target URL', 
-                values='Cosine Similarity', 
-                aggfunc='mean'
-            ).fillna(0)
-            
-            fig_heatmap_sim = px.imshow(
-                heatmap_data_sim,
-                color_continuous_scale='Blues',
-                title='Cosine Similarity Heatmap',
-                labels=dict(x="Target URL", y="Referring page URL", color="Cosine Similarity"),
-                text_auto=True
-            )
-            fig_heatmap_sim.update_layout(height=500)
-            st.plotly_chart(fig_heatmap_sim, use_container_width=True)
+            top_sim = df.sort_values(by='Cosine Similarity', ascending=False).head(10)
+            st.plotly_chart(px.bar(top_sim, x='Cosine Similarity', y='Referring page URL', orientation='h', title='Top 10 by Cosine Similarity', hover_data=['Target URL']), use_container_width=True)
             st.caption("💡 **Cosine Similarity** measures how closely the content of referring pages matches your target page's content. Higher scores indicate more topically relevant backlinks.")
         
         with col2:
-            # Prepare data for CAS heatmap
-            top_cas = df.sort_values(by='Contextual Authority Score', ascending=False).head(15)
-            
-            # Create pivot table for heatmap using full URLs
-            heatmap_data_cas = top_cas.pivot_table(
-                index='Referring page URL', 
-                columns='Target URL', 
-                values='Contextual Authority Score', 
-                aggfunc='mean'
-            ).fillna(0)
-            
-            fig_heatmap_cas = px.imshow(
-                heatmap_data_cas,
-                color_continuous_scale='Reds',
-                title='Contextual Authority Score Heatmap',
-                labels=dict(x="Target URL", y="Referring page URL", color="CAS"),
-                text_auto=True
-            )
-            fig_heatmap_cas.update_layout(height=500)
-            st.plotly_chart(fig_heatmap_cas, use_container_width=True)
+            top_cas = df.sort_values(by='Contextual Authority Score', ascending=False).head(10)
+            st.plotly_chart(px.bar(top_cas, x='Contextual Authority Score', y='Referring page URL', orientation='h', title='Top 10 by Contextual Authority Score', color_discrete_sequence=['#ff6b6b'], hover_data=['Target URL']), use_container_width=True)
             st.caption("📈 **Contextual Authority Score (CAS)** combines link authority with topical relevance. It factors in the page's URL Rating, link dilution (external links), and semantic similarity for a comprehensive quality score.")
 
     with tab3:
