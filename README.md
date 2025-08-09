@@ -2,7 +2,7 @@
 
 This project enhances **backlink profile analysis** by combining **Domain Rating (DR)** with the **semantic relevance** between backlinks and your site’s target pages.
 
-In my experience, the quality of a backlink often correlates with its position on the target page. This project focuses only on **backlinks placed within the main content area**, ignoring those in static sections like the footer. Footer links are frequently from spammy sources, purchased domains, owned sites, or social media, and are often repeated site-wide. Such links can otherwise become outliers and skew the analysis.
+In my experience, the quality of a backlink often correlates with its position on the target page. This project focuses only on **backlinks placed within the main content area**, ignoring those in static sections like the footer. Footer links are frequently from spammy sources, purchased domains, owned sites, or social media, and are often repeated site-wide.
 
 After measuring each backlink’s semantic relevance to its target URL using **cosine similarity**, the project applies the **Contextual Authority Score (CAS)**. CAS condenses backlink quality into a single, actionable value by combining page authority, link dilution, and semantic relevance — helping SEOs focus on the true value of their backlinks in line with modern ranking signals.
 
