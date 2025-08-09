@@ -61,38 +61,49 @@ Adding cosine similarity between backlinks and target URLs gives your analysis a
 > ⚠️ **Potential red flags**: Low DR and Low Semantic Similarity  
 
 ---
-### Cosine Similarity is the scrapped copy of Google's RankEmbed
+## Cosine Similarity vs. Google’s RankEmbed
 
-A word or two of caution with the cosine similarity as we know it.
-Cosine similarity only compares the angle of word vectors, but doesn't factor in  their magnitude (length). Hence, it sacrifices meaning by ignoring true word relationships and order, so just the semantic match. In fact, it doesn’t capture word order or true relationships—so phrases like “the dog chased the cat” and “the cat chased the dog” look the same to it.
-Plus, embeddings aren’t perfect—they’re rough approximations, and CS doesn’t catch subtle differences in meaning. Use it to guide analysis, not as the final answer
+**Cosine similarity** is a basic way to measure how similar two pieces of text are. It compares the direction of word meanings (their “angle”) but ignores their "strength" (length). This means it only measures general topic similarity — it doesn’t understand word order or deeper relationships. For example:
 
-But Google indexing pipelines go further: RankEmbed also considers the vector length other than the angle of the vectors, which lets it mix in extra signals like PageRank, freshness, or click data.
+> “The dog chased the cat”
+> “The cat chased the dog”
 
-**What does it mean?**
-- SEO Indexation - this means that search results aren’t ranked by meaning alone but are boosted by authority and relevance signals too.
-- SEO audit - this means that cosine similarity acts as a leading indicator to support the analysis.
-It doesn't reflect how Google prepares their cached index to meet the search query vectors; therefore, **avoid acting upon this indicator alone**.
+Cosine similarity would see these as the same, even though **the meaning is different**
+
+It’s also worth noting that text embeddings (the math behind this) aren’t perfect. They give rough approximations and can miss subtle differences. So, cosine similarity should serve as a *wooden stick* to support your analysis - not be your only decision-making tool.
+
+**Google’s RankEmbed** goes further. It also considers vector length (strength), allowing it to combine meaning with other signals like PageRank, freshness, or click data.
+
+**What this means for SEO**
+
+- For indexation: Google doesn’t rank pages by meaning alone — it blends authority, freshness, and relevance (**DotProduct & RankEmbed** algorithms).
+- For audits: Cosine similarity can be a useful early indicator, but it’s not the full picture. Don’t base important SEO decisions on it alone.
 
 ---
 ### Enter the Contextual Authority Score metric
 
-I coined the label to describe a compounded metric designed to quantify the impact and topical relevance of an individual backlink.
-It blends page authority, link dilution, and semantic relevance into a single, actionable score —helping SEOs evaluate backlink quality in line with modern ranking signals.
+I coined this new metric for the purpose of this project.
+**Contextual Authority Score (CAS)** is a number that helps you judge the quality of a backlink.
+The measure ponders:
 
-As per the formula
+- **Page authority** – how strong the linking page is.
+- **Link dilution** – how many other external links are on that page.
+- **Relevance** – how closely the linking page’s topic matches your page’s topic.
 
 > CAS = (UR / ExLC) × S
 
-- UR (URL Rating): A numerical representation of the authority of the linking page, often derived from PageRank-like metrics. Unlike domain-level scores (e.g., Domain Rating or Domain Authority), UR focuses on the strength of a specific URL.
+ExLC (External Link Count) = 
 
-- ExLC (External Link Count): The total number of outbound links (pointing to external domains) from the linking page. It serves as a dilution factor, reducing the perceived value of a backlink when it's one of many on a page.
+S (Semantic Similarity) = 
+- UR (URL Rating): strength of the specific linking page (not the whole site).
 
-- S (Cosine Similarity): A semantic similarity score that reflects how contextually or topically relevant the referring page is to the target page.
+- ExLC (External Link Count): number of outbound links (pointing to external domains) from the linking page. It serves as a dilution factor, reducing the perceived value of a backlink when it's one of many on a page.
+
+- S (Cosine Similarity): A semantic similarity score that reflects how topically relevant the link is to your page.
 
 📊 Interpretation of CAS Values:
-- High CAS → A link is both authoritative and topically relevant.
-- Low CAS → A link may come from a weak page, be overly diluted, or be semantically off-topic.
+- **✅ High CAS** → A link is both authoritative and topically relevant.
+- **❌ Low CAS** → A link may come from a weak page, be overly diluted, or be semantically off-topic.
 
 🧰 Use Cases:
 - Backlink Auditing: Identify which links are most beneficial and which are low-quality or off-topic.
@@ -100,8 +111,8 @@ As per the formula
 - SEO Reporting: Provide a data-driven score that reflects both authority and relevance.
 
 📌 Important Notes:
-CAS should not be used in isolation. It complements other qualitative and technical backlink evaluation factors (e.g., placement, anchor text).
-As with other metrics, CAS is largely biased by the default infidelity of the input metrics (e.g., UR is an Ahref's proprietary metric whose tracking criteria are unknown but are surely grounded in their approach to data mining from the organic clickstream).
+Do not use CAS in isolation. Make sure you handle this metric alongside other backlink indicators (e.g., placement, anchor text).
+CAS is largely biased by input metrics like UR, which are proprietary and not fully transparent.
 
 
 | Metric             | Authority | Relevance | Link Equity Awareness |
