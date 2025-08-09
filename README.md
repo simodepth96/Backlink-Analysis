@@ -6,15 +6,16 @@ In my experience, the quality of a backlink often correlates with its position o
 
 After measuring each backlink’s semantic relevance to its target URL using **cosine similarity**, the project applies the **Contextual Authority Score (CAS)**. CAS condenses backlink quality into a single, actionable value by combining page authority, link dilution, and semantic relevance — helping SEOs focus on the true value of their backlinks in line with modern ranking signals.
 
-
-<img width="894" height="294" alt="image" src="https://github.com/user-attachments/assets/ab21875d-dd06-46db-b71c-9d68d8683769" />
+**N.B**- Nobody stops you from inspecting your *brick-and-mortar* backlink profile. The app and the code attached works perfectly fine evne if you export the entire backlink profile from Ahrefs - just expect more outliers
 
 ## The Process
 
 1. **Export your backlinks**  
-   Go to the **Backlinks** section in [Ahrefs](https://ahrefs.com/), and export the report as a **CSV** file.
+   Go to the **Backlinks** section in [Ahrefs](https://ahrefs.com/), make sure to toggle only **backlinks in content**, and export the report as a **CSV** file.
+   <img width="1490" height="797" alt="image" src="https://github.com/user-attachments/assets/31eb6821-82fe-4cab-80fe-44a11297c52f" />
 
-2. **Clean the file and convert to XLSX**  
+
+3. **Clean the file and convert to XLSX**  
    Open the CSV file and **remove any unnecessary columns manually**. Save the cleaned file as an `.xlsx`.  
    The expected input file must contain the following headers
    
