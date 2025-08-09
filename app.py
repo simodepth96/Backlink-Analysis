@@ -150,7 +150,7 @@ if uploaded_file and model_choice:
             )
             cas_dist = df.groupby('CAS Range')['Referring page URL'].count().reset_index().rename(columns={'Referring page URL': 'Count'})
             st.plotly_chart(px.bar(cas_dist, x='CAS Range', y='Count', title='Contextual Authority Score Distribution',color_discrete_sequence=['#ff6b6b']), use_container_width=True)
-            st.caption("📈 **Contextual Authority Score (CAS)** combines link authority with topical relevance. It factors in the page's URL Rating, link dilution (external links), and semantic similarity for a comprehensive quality score.")
+            st.caption("📈 **Contextual Authority Score (CAS)** combines link authority with topical relevance. It factors in the page's URL Rating, external links, and semantic similarity for a comprehensive quality score. The higher the score, the more authoritative and topically relevant a link is.")
 
     with tab2:
         st.markdown("### 🏆 Top Performing Backlinks")
