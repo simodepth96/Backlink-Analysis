@@ -111,7 +111,7 @@ if uploaded_file and model_choice:
     tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "📊 Overview",
         "🏆 Top Performers",
-        "🔗 Link Flow",
+        "🔗 Backlink Flow",
         "📈 Scatter Analysis",
         "📋 Data Table",
         "📥 Download"
@@ -153,17 +153,13 @@ if uploaded_file and model_choice:
     with tab2:
         st.markdown("### 🏆 Top Performing Backlinks")
         
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            top_sim = df.sort_values(by='Cosine Similarity', ascending=False).head(10)
-            st.plotly_chart(px.bar(top_sim, x='Cosine Similarity', y='Referring page URL', orientation='h', title='Top 10 by Cosine Similarity', hover_data=['Target URL']), use_container_width=True)
-            st.caption("💡 **Cosine Similarity** measures how closely the content of referring pages matches your target page's content. Higher scores indicate more topically relevant backlinks.")
-        
-        with col2:
-            top_cas = df.sort_values(by='Contextual Authority Score', ascending=False).head(10)
-            st.plotly_chart(px.bar(top_cas, x='Contextual Authority Score', y='Referring page URL', orientation='h', title='Top 10 by Contextual Authority Score', color_discrete_sequence=['#ff6b6b'], hover_data=['Target URL']), use_container_width=True)
-            st.caption("📈 **Contextual Authority Score (CAS)** combines link authority with topical relevance. It factors in the page's URL Rating, link dilution (external links), and semantic similarity for a comprehensive quality score.")
+        top_sim = df.sort_values(by='Cosine Similarity', ascending=False).head(10)
+        st.plotly_chart(px.bar(top_sim, x='Cosine Similarity', y='Referring page URL', orientation='h', title='Top 10 by Cosine Similarity', hover_data=['Target URL']), use_container_width=True)
+        st.caption("💡 **Cosine Similarity** measures how closely the content of referring pages matches your target page's content. Higher scores indicate more topically relevant backlinks.")
+    
+        top_cas = df.sort_values(by='Contextual Authority Score', ascending=False).head(10)
+        st.plotly_chart(px.bar(top_cas, x='Contextual Authority Score', y='Referring page URL', orientation='h', title='Top 10 by Contextual Authority Score', color_discrete_sequence=['#ff6b6b'], hover_data=['Target URL']), use_container_width=True)
+        st.caption("📈 **Contextual Authority Score (CAS)** combines link authority with topical relevance. It factors in the page's URL Rating, link dilution (external links), and semantic similarity for a comprehensive quality score.")
 
     with tab3:
         st.markdown("### 🔗 Backlink Flow Visualization")
