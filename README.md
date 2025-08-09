@@ -59,7 +59,7 @@ Domain Rating (DR) is a popular measure of a site’s authority, but it’s not 
 > ⚠️ **Potential red flags**: Low DR and Low Semantic Similarity  
 
 ---
-## Cosine Similarity vs. Google’s RankEmbed
+## Cosine Similarity vs. Google’s Index Algorithms
 
 **Cosine similarity** is a basic way to measure how similar two pieces of text are. It compares the direction of word meanings (their “angle”) but ignores their "strength" (length). This means it only measures general topic similarity — it doesn’t understand word order or deeper relationships. For example:
 
