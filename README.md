@@ -1,6 +1,13 @@
 # Backlink Semantic Analysis
 
-This project enhances your backlink profile analysis by combining **Domain Rating (DR)** with **semantic relevance** between backlinks and your website’s target pages.
+This project enhances **backlink profile analysis** by combining **Domain Rating (DR)** with the **semantic relevance** between backlinks and your site’s target pages.
+
+In my experience, the quality of a backlink often correlates with its position on the target page. This project focuses only on **backlinks placed within the main content area**, ignoring those in static sections like the footer. Footer links are frequently from spammy sources, purchased domains, owned sites, or social media, and are often repeated site-wide. Such links can otherwise become outliers and skew the analysis.
+
+After measuring each backlink’s semantic relevance to its target URL using **cosine similarity**, the project applies the **Contextual Authority Score (CAS)**. CAS condenses backlink quality into a single, actionable value by combining page authority, link dilution, and semantic relevance — helping SEOs focus on the true value of their backlinks in line with modern ranking signals.
+
+
+<img width="894" height="294" alt="image" src="https://github.com/user-attachments/assets/ab21875d-dd06-46db-b71c-9d68d8683769" />
 
 ## The Process
 
