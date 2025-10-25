@@ -107,12 +107,13 @@ if uploaded_file and model_choice:
     
     df = st.session_state.processed_df
     
-    tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
         "📊 Overview",
         "🏆 Top Performers",
         "🔗 Backlink Flow",
         "📋 Data Table",
-        "📥 Download"
+        "📥 Download",
+        "⚠️ Lowest Performers (HTTP 200)"
     ])
     
     with tab1:
@@ -240,6 +241,109 @@ if uploaded_file and model_choice:
             file_name="enhanced_backlink_analysis.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+    
+    with tab6:
+        st.markdown("### ⚠️ Lowest Performing Backlinks (HTTP 200 Only)")
+        
+        # Check if HTTP status code column exists
+        status_col = None
+        possible_status_cols = ['Referring page HTTP Status Code', 'HTTP Status Code', 'Status Code', 'Referring page status']
+        for col in possible_status_cols:
+            if col in df.columns:
+                status_col = col
+                break
+        
+        if status_col is None:
+            st.warning("⚠️ HTTP Status Code column not found in the uploaded file. Please ensure your file contains one of these columns: 'Referring page HTTP Status Code', 'HTTP Status Code', 'Status Code', or 'Referring page status'")
+            st.info("Showing all data without HTTP 200 filtering...")
+            df_filtered = df.copy()
+        else:
+            # Filter for HTTP 200 only
+            df_filtered = df[df[status_col] == 200].copy()
+            st.success(f"✅ Filtered to {len(df_filtered)} backlinks with HTTP 200 status code (from {len(df)} total)")
+        
+        if len(df_filtered) == 0:
+            st.error("❌ No backlinks found with HTTP 200 status code")
+        else:
+            # Top 10 Target URLs by Lowest UR
+            st.markdown("#### 🔻 Top 10 Target URLs by Lowest UR")
+            lowest_ur = df_filtered.nsmallest(10, 'UR', keep='first')
+            fig1 = px.bar(
+                lowest_ur.sort_values('UR', ascending=True), 
+                x='UR', 
+                y='Target URL', 
+                orientation='h',
+                title='Target URLs with Lowest URL Rating (UR)',
+                color='UR',
+                color_continuous_scale='Reds_r',
+                hover_data=['Referring page URL', 'Cosine Similarity', 'Contextual Authority Score']
+            )
+            fig1.update_layout(yaxis={'categoryorder':'total ascending'})
+            st.plotly_chart(fig1, use_container_width=True)
+            st.caption("💡 Lower UR indicates pages with less authority passing links to your target URLs")
+            
+            # Top 10 Target URLs by Lowest External Links
+            st.markdown("#### 🔻 Top 10 Target URLs by Lowest External Links")
+            lowest_ext = df_filtered.nsmallest(10, 'External links', keep='first')
+            fig2 = px.bar(
+                lowest_ext.sort_values('External links', ascending=True), 
+                x='External links', 
+                y='Target URL', 
+                orientation='h',
+                title='Target URLs with Lowest External Links',
+                color='External links',
+                color_continuous_scale='Oranges_r',
+                hover_data=['Referring page URL', 'Cosine Similarity', 'Contextual Authority Score']
+            )
+            fig2.update_layout(yaxis={'categoryorder':'total ascending'})
+            st.plotly_chart(fig2, use_container_width=True)
+            st.caption("💡 Fewer external links means less link equity dilution (which is actually good!)")
+            
+            # Top 10 Target URLs by Lowest Cosine Similarity
+            st.markdown("#### 🔻 Top 10 Target URLs by Lowest Cosine Similarity")
+            lowest_cosine = df_filtered.nsmallest(10, 'Cosine Similarity', keep='first')
+            fig3 = px.bar(
+                lowest_cosine.sort_values('Cosine Similarity', ascending=True), 
+                x='Cosine Similarity', 
+                y='Target URL', 
+                orientation='h',
+                title='Target URLs with Lowest Cosine Similarity',
+                color='Cosine Similarity',
+                color_continuous_scale='Purples_r',
+                hover_data=['Referring page URL', 'UR', 'External links']
+            )
+            fig3.update_layout(yaxis={'categoryorder':'total ascending'})
+            st.plotly_chart(fig3, use_container_width=True)
+            st.caption("⚠️ Low cosine similarity indicates topically irrelevant backlinks that may not provide much SEO value")
+            
+            # Top 10 Target URLs by Lowest CAS
+            st.markdown("#### 🔻 Top 10 Target URLs by Lowest Contextual Authority Score (CAS)")
+            lowest_cas = df_filtered.nsmallest(10, 'Contextual Authority Score', keep='first')
+            fig4 = px.bar(
+                lowest_cas.sort_values('Contextual Authority Score', ascending=True), 
+                x='Contextual Authority Score', 
+                y='Target URL', 
+                orientation='h',
+                title='Target URLs with Lowest Contextual Authority Score',
+                color='Contextual Authority Score',
+                color_continuous_scale='Blues_r',
+                hover_data=['Referring page URL', 'UR', 'External links', 'Cosine Similarity']
+            )
+            fig4.update_layout(yaxis={'categoryorder':'total ascending'})
+            st.plotly_chart(fig4, use_container_width=True)
+            st.caption("⚠️ Low CAS indicates backlinks with poor combination of authority and relevance - consider disavowing or improving these")
+            
+            # Summary statistics
+            st.markdown("#### 📊 HTTP 200 Filtered Statistics")
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Avg UR", f"{df_filtered['UR'].mean():.1f}")
+            with col2:
+                st.metric("Avg External Links", f"{df_filtered['External links'].mean():.1f}")
+            with col3:
+                st.metric("Avg Cosine Similarity", f"{df_filtered['Cosine Similarity'].mean():.0f}")
+            with col4:
+                st.metric("Avg CAS", f"{df_filtered['Contextual Authority Score'].mean():.0f}")
 
 else:
     st.info("👆 Please upload an Excel file and select a model to begin the analysis.")
