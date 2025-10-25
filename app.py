@@ -32,31 +32,30 @@ model_choice = st.selectbox(
 if uploaded_file and model_choice:
     if 'processed_df' not in st.session_state:
         df = pd.read_excel(uploaded_file)
-
         required_columns = ['Referring page URL', 'Target URL', 'UR', 'External links']
         missing_columns = [col for col in required_columns if col not in df.columns]
-
+        
         if missing_columns:
             st.error(f"❌ Missing required columns: {', '.join(missing_columns)}")
             st.info("Required columns: 'Referring page URL', 'Target URL', 'UR', 'External links'")
             st.stop()
-
+        
         with st.spinner(f"🔄 Loading model: {model_choice}"):
             model = SentenceTransformer(model_choice)
-
+        
         def tokenize_url(url):
             if pd.isna(url) or not isinstance(url, str):
                 return []
             url = re.sub(r"https?://", "", url)
             tokens = re.split(r"[\/\.\-\?\=\_\&]+", url)
             return [t.lower() for t in tokens if t]
-
+        
         def get_average_embedding(tokens):
             if not tokens:
                 return np.zeros(model.get_sentence_embedding_dimension())
             embeddings = model.encode(tokens)
             return np.mean(embeddings, axis=0)
-
+        
         def compute_token_based_similarity(ref_url, tgt_url):
             ref_tokens = tokenize_url(ref_url)
             tgt_tokens = tokenize_url(tgt_url)
@@ -65,7 +64,7 @@ if uploaded_file and model_choice:
             if np.all(ref_vec == 0) or np.all(tgt_vec == 0):
                 return np.nan
             return 1 - cosine(ref_vec, tgt_vec)
-
+        
         with st.spinner("⚙️ Calculating semantic similarities..."):
             cosine_similarities = []
             progress_bar = st.progress(0, text="Processing rows...")
@@ -75,12 +74,11 @@ if uploaded_file and model_choice:
                 progress = (i + 1) / len(df)
                 progress_bar.progress(progress, text=f"Progress: {int(progress * 100)}%")
             progress_bar.empty()
-
             df['Cosine Similarity'] = np.round(cosine_similarities, 3)
-
+        
         df['UR'] = pd.to_numeric(df['UR'], errors='coerce')
         df['External links'] = pd.to_numeric(df['External links'], errors='coerce')
-
+        
         def calculate_contextual_authority_score(row):
             url_rating = row['UR']
             external_links = row['External links']
@@ -90,24 +88,25 @@ if uploaded_file and model_choice:
             authority_ratio = url_rating / external_links
             contextual_authority_score = authority_ratio * cosine_sim
             return contextual_authority_score
-
+        
         df['Contextual Authority Score'] = df.apply(calculate_contextual_authority_score, axis=1)
         df['Contextual Authority Score'] = df['Contextual Authority Score'].round(3)
-
+        
         if 'Domain rating' in df.columns:
             df['Domain rating'] = pd.to_numeric(df['Domain rating'], errors='coerce').fillna(0).astype(int)
-
+        
         df['Cosine Similarity'] = (df['Cosine Similarity'] * 100).round().astype(int)
         df['Contextual Authority Score'] = (df['Contextual Authority Score'] * 100).round().astype(int)
-
+        
         st.session_state.processed_df = df.copy()
+        
         buffer = BytesIO()
         df.to_excel(buffer, index=False, engine='openpyxl')
         buffer.seek(0)
         st.session_state.excel_buffer = buffer
-
+    
     df = st.session_state.processed_df
-
+    
     tab1, tab2, tab3, tab4, tab5 = st.tabs([
         "📊 Overview",
         "🏆 Top Performers",
@@ -115,10 +114,11 @@ if uploaded_file and model_choice:
         "📋 Data Table",
         "📥 Download"
     ])
-
+    
     with tab1:
         st.markdown("### 📊 Analysis Overview")
         col1, col2, col3, col4 = st.columns(4)
+        
         with col1:
             st.metric("Total Backlinks", len(df))
         with col2:
@@ -127,8 +127,9 @@ if uploaded_file and model_choice:
             st.metric("Avg CAS", f"{df['Contextual Authority Score'].mean():.0f}")
         with col4:
             st.metric("Max Cosine Similarity", f"{df['Cosine Similarity'].max()}")
-
+        
         col1, col2 = st.columns(2)
+        
         with col1:
             df['Similarity Range'] = pd.cut(
                 df['Cosine Similarity'],
@@ -139,7 +140,7 @@ if uploaded_file and model_choice:
             sim_dist = df.groupby('Similarity Range')['Referring page URL'].count().reset_index().rename(columns={'Referring page URL': 'Count'})
             st.plotly_chart(px.bar(sim_dist, x='Similarity Range', y='Count', title='Cosine Similarity Distribution'), use_container_width=True)
             st.caption("💡 **Cosine Similarity** measures how closely the content of referring pages matches your target page's content. Higher scores indicate more topically relevant backlinks.")
-
+        
         with col2:
             df['CAS Range'] = pd.cut(
                 df['Contextual Authority Score'],
@@ -150,22 +151,20 @@ if uploaded_file and model_choice:
             cas_dist = df.groupby('CAS Range')['Referring page URL'].count().reset_index().rename(columns={'Referring page URL': 'Count'})
             st.plotly_chart(px.bar(cas_dist, x='CAS Range', y='Count', title='Contextual Authority Score Distribution',color_discrete_sequence=['#ff6b6b']), use_container_width=True)
             st.caption("📈 **Contextual Authority Score (CAS)** combines link authority with topical relevance. It factors in the page's URL Rating, external links, and semantic similarity for a comprehensive quality score. The higher the score, the more authoritative and topically relevant a link is.")
-
+    
     with tab2:
         st.markdown("### 🏆 Top Performing Backlinks")
         
         top_sim = df.sort_values(by='Cosine Similarity', ascending=False).tail(10)
         st.plotly_chart(px.bar(top_sim, x='Cosine Similarity', y='Referring page URL', orientation='h', title='Top 10 by Cosine Similarity', hover_data=['Target URL']), use_container_width=True)
-    
-    
+        
         top_cas = df.sort_values(by='Contextual Authority Score', ascending=False).tail(10)
         st.plotly_chart(px.bar(top_cas, x='Contextual Authority Score', y='Referring page URL', orientation='h', title='Top 10 by Contextual Authority Score', color_discrete_sequence=['#ff6b6b'], hover_data=['Target URL']), use_container_width=True)
     
-
     with tab3:
         st.markdown("### 🔗 Referring Domains Relevance to your Target Domain")
         st.caption("This diagram shows the relationship between referring domains and target domains. The thickness of each flow represents the Contextual Authority Score, helping you visualize which domains are sending the most valuable backlinks.")
-
+        
         # Create Sankey diagram data
         # Limit to top 15 backlinks for readability
         top_backlinks = df.nlargest(15, 'Contextual Authority Score')
@@ -199,40 +198,40 @@ if uploaded_file and model_choice:
         target_indices = [node_indices[domain] for domain in top_backlinks['Target Domain']]
         values = top_backlinks['Contextual Authority Score'].tolist()
         
-       # Create the Sankey diagram
-fig_sankey = go.Figure(data=[go.Sankey(
-    node=dict(
-        pad=15,
-        thickness=20,
-        line=dict(color="white", width=0.5),
-        label=all_nodes,
-        color=["#4A90E2" if node in source_nodes else "#E24A4A" for node in all_nodes]
-    ),
-    link=dict(
-        source=source_indices,
-        target=target_indices,
-        value=values,
-        color="rgba(255, 107, 107, 0.3)"
-    )
-)])
-
-fig_sankey.update_layout(
-    title_text="<br><sub>Flow thickness represents Contextual Authority Score</sub>",
-    font=dict(size=10, color="white"),
-    height=600,
-    paper_bgcolor="#1e1e1e",
-    plot_bgcolor="#1e1e1e"
-)
-
-st.plotly_chart(fig_sankey, use_container_width=True)
+        # Create the Sankey diagram
+        fig_sankey = go.Figure(data=[go.Sankey(
+            node=dict(
+                pad=15,
+                thickness=20,
+                line=dict(color="white", width=0.5),
+                label=all_nodes,
+                color=["#4A90E2" if node in source_nodes else "#E24A4A" for node in all_nodes]
+            ),
+            link=dict(
+                source=source_indices,
+                target=target_indices,
+                value=values,
+                color="rgba(255, 107, 107, 0.3)"
+            )
+        )])
         
+        fig_sankey.update_layout(
+            title_text="<br><sub>Flow thickness represents Contextual Authority Score</sub>",
+            font=dict(size=10, color="white"),
+            height=600,
+            paper_bgcolor="#1e1e1e",
+            plot_bgcolor="#1e1e1e"
+        )
+        
+        st.plotly_chart(fig_sankey, use_container_width=True)
+    
     with tab4:
         st.markdown("### 📋 Complete Data Table")
         cols = ['Referring page URL', 'Target URL', 'UR', 'External links', 'Cosine Similarity', 'Contextual Authority Score']
         if 'Domain rating' in df.columns:
             cols.insert(1, 'Domain rating')
         st.dataframe(df[cols].sort_values(by='Contextual Authority Score', ascending=False), use_container_width=True, height=600)
-
+    
     with tab5:
         st.markdown("### 📥 Download Results")
         st.download_button(
@@ -241,17 +240,16 @@ st.plotly_chart(fig_sankey, use_container_width=True)
             file_name="enhanced_backlink_analysis.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         )
+
 else:
     st.info("👆 Please upload an Excel file and select a model to begin the analysis.")
     with st.expander("ℹ️ About this tool"):
         st.markdown("""
         **This tool analyzes backlink semantic similarity and contextual authority:**
         **It is highly recommended that you upload an XLSX file with backlinks placed in the content area of the target site.**
-
         - **Cosine Similarity**: Measures semantic similarity between referring and target URLs
         - **Contextual Authority Score (CAS)**: A relevance-weighted backlink metric that combines link authority, link dilution, and topical similarity
         - **Formula**: CAS = (UR / External Links) × Cosine Similarity
-
         **Required columns:**
         - `Referring page URL`
         - `Target URL`
