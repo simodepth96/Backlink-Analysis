@@ -154,11 +154,11 @@ if uploaded_file and model_choice:
     with tab2:
         st.markdown("### 🏆 Top Performing Backlinks")
         
-        top_sim = df.sort_values(by='Cosine Similarity', ascending=False).head(10)
+        top_sim = df.sort_values(by='Cosine Similarity', ascending=False).tail(10)
         st.plotly_chart(px.bar(top_sim, x='Cosine Similarity', y='Referring page URL', orientation='h', title='Top 10 by Cosine Similarity', hover_data=['Target URL']), use_container_width=True)
     
     
-        top_cas = df.sort_values(by='Contextual Authority Score', ascending=False).head(10)
+        top_cas = df.sort_values(by='Contextual Authority Score', ascending=False).tail(10)
         st.plotly_chart(px.bar(top_cas, x='Contextual Authority Score', y='Referring page URL', orientation='h', title='Top 10 by Contextual Authority Score', color_discrete_sequence=['#ff6b6b'], hover_data=['Target URL']), use_container_width=True)
     
 
@@ -199,30 +199,32 @@ if uploaded_file and model_choice:
         target_indices = [node_indices[domain] for domain in top_backlinks['Target Domain']]
         values = top_backlinks['Contextual Authority Score'].tolist()
         
-        # Create the Sankey diagram
-        fig_sankey = go.Figure(data=[go.Sankey(
-            node=dict(
-                pad=15,
-                thickness=20,
-                line=dict(color="black", width=0.5),
-                label=all_nodes,
-                color=["lightblue" if node in source_nodes else "lightcoral" for node in all_nodes]
-            ),
-            link=dict(
-                source=source_indices,
-                target=target_indices,
-                value=values,
-                color="rgba(255, 107, 107, 0.4)"
-            )
-        )])
-        
-        fig_sankey.update_layout(
-            title_text="<br><sub>Flow thickness represents Contextual Authority Score</sub>",
-            font_size=10,
-            height=600
-        )
-        
-        st.plotly_chart(fig_sankey, use_container_width=True)
+       # Create the Sankey diagram
+fig_sankey = go.Figure(data=[go.Sankey(
+    node=dict(
+        pad=15,
+        thickness=20,
+        line=dict(color="white", width=0.5),
+        label=all_nodes,
+        color=["#4A90E2" if node in source_nodes else "#E24A4A" for node in all_nodes]
+    ),
+    link=dict(
+        source=source_indices,
+        target=target_indices,
+        value=values,
+        color="rgba(255, 107, 107, 0.3)"
+    )
+)])
+
+fig_sankey.update_layout(
+    title_text="<br><sub>Flow thickness represents Contextual Authority Score</sub>",
+    font=dict(size=10, color="white"),
+    height=600,
+    paper_bgcolor="#1e1e1e",
+    plot_bgcolor="#1e1e1e"
+)
+
+st.plotly_chart(fig_sankey, use_container_width=True)
         
     with tab4:
         st.markdown("### 📋 Complete Data Table")
