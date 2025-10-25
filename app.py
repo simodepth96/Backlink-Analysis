@@ -247,7 +247,7 @@ if uploaded_file and model_choice:
         
         # Check if HTTP status code column exists
         status_col = None
-        possible_status_cols = ['Referring page HTTP Status Code', 'HTTP Status Code', 'Status Code', 'Referring page status']
+        possible_status_cols = ['Referring page HTTP code', 'HTTP Status Code', 'Status Code', 'Referring page status']
         for col in possible_status_cols:
             if col in df.columns:
                 status_col = col
