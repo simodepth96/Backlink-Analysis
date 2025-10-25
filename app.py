@@ -316,18 +316,7 @@ if uploaded_file and model_choice:
             fig4.update_layout(yaxis={'categoryorder':'total ascending'})
             st.plotly_chart(fig4, use_container_width=True)
             st.caption("⚠️ Low CAS indicates backlinks with poor combination of authority and relevance - consider disavowing or improving these")
-            
-            # Summary statistics
-            st.markdown("#### 📊 HTTP 200 Filtered Statistics")
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                st.metric("Avg UR", f"{df_filtered['UR'].mean():.1f}")
-            with col2:
-                st.metric("Avg External Links", f"{df_filtered['External links'].mean():.1f}")
-            with col3:
-                st.metric("Avg Cosine Similarity", f"{df_filtered['Cosine Similarity'].mean():.0f}")
-            with col4:
-                st.metric("Avg CAS", f"{df_filtered['Contextual Authority Score'].mean():.0f}")
+        
 
 else:
     st.info("👆 Please upload an Excel file and select a model to begin the analysis.")
