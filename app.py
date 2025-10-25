@@ -265,32 +265,32 @@ if uploaded_file and model_choice:
         if len(df_filtered) == 0:
             st.error("❌ No backlinks found with HTTP 200 status code")
         else:
-            # Top 10 Target URLs by Lowest UR
-            st.markdown("#### 🔻 Top 10 Target URLs by Lowest UR")
+            # Top 10 Referring page URL by Lowest UR
+            st.markdown("#### 🔻 Top 10 Backlinks URL by Lowest UR")
             lowest_ur = df_filtered.nsmallest(10, 'UR', keep='first')
             fig1 = px.bar(
                 lowest_ur.sort_values('UR', ascending=True), 
                 x='UR', 
-                y='Target URL', 
+                y='Referring page URL', 
                 orientation='h',
-                title='Target URLs with Lowest URL Rating (UR)',
+                title='Backlinks with Lowest URL Rating (UR)',
                 color='UR',
                 color_continuous_scale='Reds_r',
                 hover_data=['Referring page URL', 'Cosine Similarity', 'Contextual Authority Score']
             )
             fig1.update_layout(yaxis={'categoryorder':'total ascending'})
             st.plotly_chart(fig1, use_container_width=True)
-            st.caption("💡 Lower UR indicates pages with less authority passing links to your target URLs")
+            st.caption("💡 Lower UR indicates pages with less authority passing links to your referring page URL")
             
-            # Top 10 Target URLs by Lowest External Links
-            st.markdown("#### 🔻 Top 10 Target URLs by Lowest External Links")
+            # Top 10 Referring page URL by Lowest External Links
+            st.markdown("#### 🔻 Top 10 Backlinks by Lowest External Links")
             lowest_ext = df_filtered.nsmallest(10, 'External links', keep='first')
             fig2 = px.bar(
                 lowest_ext.sort_values('External links', ascending=True), 
                 x='External links', 
-                y='Target URL', 
+                y='Referring page URL', 
                 orientation='h',
-                title='Target URLs with Lowest External Links',
+                title='Referring page URLs with Lowest External Links',
                 color='External links',
                 color_continuous_scale='Oranges_r',
                 hover_data=['Referring page URL', 'Cosine Similarity', 'Contextual Authority Score']
@@ -299,15 +299,15 @@ if uploaded_file and model_choice:
             st.plotly_chart(fig2, use_container_width=True)
             st.caption("💡 Fewer external links means less link equity dilution (which is actually good!)")
             
-            # Top 10 Target URLs by Lowest Cosine Similarity
-            st.markdown("#### 🔻 Top 10 Target URLs by Lowest Cosine Similarity")
+            # Top 10 Referring page URL by Lowest Cosine Similarity
+            st.markdown("#### 🔻 Top 10 Backlinks by Lowest Cosine Similarity")
             lowest_cosine = df_filtered.nsmallest(10, 'Cosine Similarity', keep='first')
             fig3 = px.bar(
                 lowest_cosine.sort_values('Cosine Similarity', ascending=True), 
                 x='Cosine Similarity', 
-                y='Target URL', 
+                y='Referring page URL', 
                 orientation='h',
-                title='Target URLs with Lowest Cosine Similarity',
+                title='Referring page URLs with Lowest Cosine Similarity',
                 color='Cosine Similarity',
                 color_continuous_scale='Purples_r',
                 hover_data=['Referring page URL', 'UR', 'External links']
@@ -317,14 +317,14 @@ if uploaded_file and model_choice:
             st.caption("⚠️ Low cosine similarity indicates topically irrelevant backlinks that may not provide much SEO value")
             
             # Top 10 Target URLs by Lowest CAS
-            st.markdown("#### 🔻 Top 10 Target URLs by Lowest Contextual Authority Score (CAS)")
+            st.markdown("#### 🔻 Top 10 Backlinks by Lowest Contextual Authority Score (CAS)")
             lowest_cas = df_filtered.nsmallest(10, 'Contextual Authority Score', keep='first')
             fig4 = px.bar(
                 lowest_cas.sort_values('Contextual Authority Score', ascending=True), 
                 x='Contextual Authority Score', 
-                y='Target URL', 
+                y='Referring page URL', 
                 orientation='h',
-                title='Target URLs with Lowest Contextual Authority Score',
+                title='Referring page URLs with Lowest Contextual Authority Score',
                 color='Contextual Authority Score',
                 color_continuous_scale='Blues_r',
                 hover_data=['Referring page URL', 'UR', 'External links', 'Cosine Similarity']
