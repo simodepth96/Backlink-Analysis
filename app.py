@@ -282,22 +282,6 @@ if uploaded_file and model_choice:
             st.plotly_chart(fig1, use_container_width=True)
             st.caption("💡 Lower UR indicates pages with less authority passing links to your referring page URL")
             
-            # Top 10 Referring page URL by Lowest External Links
-            st.markdown("#### 🔻 Top 10 Backlinks by Lowest External Links")
-            lowest_ext = df_filtered.nsmallest(10, 'External links', keep='first')
-            fig2 = px.bar(
-                lowest_ext.sort_values('External links', ascending=True), 
-                x='External links', 
-                y='Referring page URL', 
-                orientation='h',
-                title='Referring page URLs with Lowest External Links',
-                color='External links',
-                color_continuous_scale='Oranges_r',
-                hover_data=['Referring page URL', 'Cosine Similarity', 'Contextual Authority Score']
-            )
-            fig2.update_layout(yaxis={'categoryorder':'total ascending'})
-            st.plotly_chart(fig2, use_container_width=True)
-            st.caption("💡 Fewer external links means less link equity dilution (which is actually good!)")
             
             # Top 10 Referring page URL by Lowest Cosine Similarity
             st.markdown("#### 🔻 Top 10 Backlinks by Lowest Cosine Similarity")
