@@ -267,7 +267,7 @@ if uploaded_file and model_choice:
         else:
             # Top 10 Referring page URL by Lowest UR
             st.markdown("#### 🔻 Top 10 Backlinks URL by Lowest UR")
-            lowest_ur = df_filtered.nsmallest(50, 'UR', keep='first')
+            lowest_ur = df_filtered.nsmallest(10, 'UR', keep='first')
             fig1 = px.bar(
                 lowest_ur.sort_values('UR', ascending=True), 
                 x='UR', 
@@ -285,7 +285,7 @@ if uploaded_file and model_choice:
             
             # Top 10 Referring page URL by Lowest Cosine Similarity
             st.markdown("#### 🔻 Top 10 Backlinks by Lowest Cosine Similarity")
-            lowest_cosine = df_filtered.nsmallest(50, 'Cosine Similarity', keep='first')
+            lowest_cosine = df_filtered.nsmallest(10, 'Cosine Similarity', keep='first')
             fig3 = px.bar(
                 lowest_cosine.sort_values('Cosine Similarity', ascending=True), 
                 x='Cosine Similarity', 
@@ -302,7 +302,7 @@ if uploaded_file and model_choice:
             
             # Top 10 Target URLs by Lowest CAS
             st.markdown("#### 🔻 Top 10 Backlinks by Lowest Contextual Authority Score (CAS)")
-            lowest_cas = df_filtered.nsmallest(50, 'Contextual Authority Score', keep='first')
+            lowest_cas = df_filtered.nsmallest(10, 'Contextual Authority Score', keep='first')
             fig4 = px.bar(
                 lowest_cas.sort_values('Contextual Authority Score', ascending=True), 
                 x='Contextual Authority Score', 
